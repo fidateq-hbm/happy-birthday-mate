@@ -16,6 +16,7 @@ import { CelebrantSpiral } from '@/components/CelebrantSpiral';
 import { MobileCelebrantCarousel } from '@/components/MobileCelebrantCarousel';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
+import { NotificationDropdown } from '@/components/NotificationDropdown';
 import { DigitalGiftEffects } from '@/components/DigitalGiftEffects';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import { daysUntilBirthday, isBirthdayToday } from '@/utils/dates';
@@ -133,6 +134,7 @@ export default function DashboardPage() {
                 <h1 className="text-2xl font-bold gradient-text">Happy Birthday Mate</h1>
               </button>
               <div className="flex items-center gap-4">
+                <NotificationDropdown isMobile={false} />
                 <img
                   src={normalizeImageUrl(user.profile_picture_url)}
                   alt={user.first_name}

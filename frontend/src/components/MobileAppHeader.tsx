@@ -1,7 +1,8 @@
 'use client';
 
-import { Cake, Bell, Search } from 'lucide-react';
+import { Cake, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { NotificationDropdown } from './NotificationDropdown';
 
 interface MobileAppHeaderProps {
   show?: boolean;
@@ -42,11 +43,7 @@ export function MobileAppHeader({
                 <Search className="w-5 h-5 text-gray-600" />
               </button>
             )}
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              {/* Notification badge */}
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <NotificationDropdown isMobile={true} />
           </div>
         </div>
       </div>
