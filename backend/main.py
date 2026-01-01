@@ -20,10 +20,29 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 
+def run_migrations():
+    """Run database migrations automatically on startup"""
+    try:
+        from alembic.config import Config
+        from alembic import command
+        
+        alembic_cfg = Config("alembic.ini")
+        print("🔄 Running database migrations...")
+        command.upgrade(alembic_cfg, "head")
+        print("✅ Database migrations completed successfully!")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not run migrations: {e}")
+        print("   This is okay if migrations were already run.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     print("🎉 Happy Birthday Mate API starting...")
+    
+    # Run migrations automatically
+    run_migrations()
+    
     yield
     # Shutdown
     print("👋 Happy Birthday Mate API shutting down...")

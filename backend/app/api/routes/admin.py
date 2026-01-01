@@ -9,7 +9,7 @@ from collections import defaultdict
 from app.core.database import get_db
 from app.models import (
     User, Celebrity, ModerationLog, FlaggedContent,
-    ModerationActionEnum, ContentTypeEnum, Room, Message, Gift, BirthdayWall
+    ModerationActionEnum, ContentTypeEnum, Room, Message, Gift, BirthdayWall, GiftCatalog
 )
 
 router = APIRouter()
@@ -536,4 +536,62 @@ async def get_user_activities(
         "users": activities,
         "total": len(activities)
     }
+
+
+@router.post("/seed-initial-data")
+async def seed_initial_data(db: Session = Depends(get_db)):
+    """
+    Seed initial production data (gifts and celebrities).
+    Safe to call multiple times - will skip existing data.
+    """
+    try:
+        import sys
+        from pathlib import Path
+        
+        # Import seed functions
+        backend_path = Path(__file__).parent.parent.parent.parent
+        sys.path.insert(0, str(backend_path))
+        
+        # Check if data already exists
+        existing_gifts = db.query(GiftCatalog).count()
+        existing_celebrities = db.query(Celebrity).count()
+        
+        results = {
+            "gifts_seeded": False,
+            "celebrities_seeded": False,
+            "message": ""
+        }
+        
+        # Seed gift catalog
+        if existing_gifts == 0:
+            try:
+                from database.seed_gift_catalog import seed_gift_catalog
+                seed_gift_catalog()
+                results["gifts_seeded"] = True
+                results["message"] += f"✅ Seeded gift catalog. "
+            except Exception as e:
+                results["message"] += f"⚠️ Gift catalog error: {str(e)}. "
+        else:
+            results["message"] += f"ℹ️ Gift catalog already has {existing_gifts} items. "
+        
+        # Seed celebrities for today
+        try:
+            from database.seed_celebrities_for_today import seed_celebrities_for_today
+            seed_celebrities_for_today()
+            results["celebrities_seeded"] = True
+            results["message"] += "✅ Seeded celebrities for today."
+        except Exception as e:
+            results["message"] += f"⚠️ Celebrities error: {str(e)}. "
+        
+        return {
+            "success": True,
+            **results
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": f"❌ Error seeding data: {str(e)}"
+        }
 
