@@ -578,8 +578,7 @@ async def run_migrations_endpoint():
         }
 
 
-@router.post("/seed-initial-data")
-@router.get("/seed-initial-data")  # Also allow GET for browser access
+@router.api_route("/seed-initial-data", methods=["GET", "POST"])  # Allow both GET and POST
 async def seed_initial_data(db: Session = Depends(get_db)):
     """
     Seed initial production data (gifts and celebrities).
