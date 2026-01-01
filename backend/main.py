@@ -25,14 +25,35 @@ def run_migrations():
     try:
         from alembic.config import Config
         from alembic import command
+        import os
         
-        alembic_cfg = Config("alembic.ini")
+        # Get absolute path to alembic.ini
+        backend_dir = Path(__file__).parent
+        alembic_ini_path = backend_dir / "alembic.ini"
+        
+        if not alembic_ini_path.exists():
+            print(f"❌ ERROR: alembic.ini not found at {alembic_ini_path}")
+            return
+        
+        alembic_cfg = Config(str(alembic_ini_path))
+        
+        # Ensure DATABASE_URL is set
+        if not settings.DATABASE_URL or settings.DATABASE_URL.startswith("postgresql://user:password"):
+            print("⚠️  WARNING: DATABASE_URL not properly configured. Skipping migrations.")
+            return
+        
         print("🔄 Running database migrations...")
+        print(f"   Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'configured'}")
+        
         command.upgrade(alembic_cfg, "head")
         print("✅ Database migrations completed successfully!")
+        
     except Exception as e:
-        print(f"⚠️  Warning: Could not run migrations: {e}")
-        print("   This is okay if migrations were already run.")
+        import traceback
+        print(f"❌ ERROR: Could not run migrations: {e}")
+        print("   Full traceback:")
+        traceback.print_exc()
+        print("   The application will continue, but database may not be initialized.")
 
 
 @asynccontextmanager
