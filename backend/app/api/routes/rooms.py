@@ -250,6 +250,80 @@ async def create_birthday_wall(
     }
 
 
+@router.get("/birthday-wall/user/{user_id}")
+async def get_user_birthday_wall(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get user's active birthday wall"""
+    today = date.today()
+    
+    # Find active wall (not closed yet)
+    wall = db.query(BirthdayWall).filter(
+        BirthdayWall.owner_id == user_id,
+        BirthdayWall.closes_at > datetime.utcnow()
+    ).first()
+    
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No active birthday wall found"
+        )
+    
+    # Get photos (owner can see all photos including unapproved)
+    photos = db.query(WallPhoto).filter(
+        WallPhoto.wall_id == wall.id
+    ).order_by(WallPhoto.display_order).all()
+    
+    # Get reactions for each photo
+    photo_data = []
+    for photo in photos:
+        reactions = db.query(PhotoReaction).filter(PhotoReaction.photo_id == photo.id).all()
+        
+        reaction_counts = {
+            "❤️": 0,
+            "👍": 0,
+            "😊": 0,
+        }
+        
+        user_reactions = set()
+        for reaction in reactions:
+            if reaction.emoji == "❤️":
+                reaction_counts["❤️"] += 1
+            elif reaction.emoji == "👍":
+                reaction_counts["👍"] += 1
+            elif reaction.emoji == "😊":
+                reaction_counts["😊"] += 1
+            
+            if reaction.user_id == user_id:
+                user_reactions.add(reaction.emoji)
+        
+        photo_data.append({
+            "id": photo.id,
+            "photo_url": photo.photo_url,
+            "caption": photo.caption,
+            "uploaded_by": photo.uploaded_by_name,
+            "created_at": photo.created_at,
+            "reactions": reaction_counts,
+            "user_reacted": list(user_reactions)
+        })
+    
+    return {
+        "wall_id": wall.id,
+        "public_url_code": wall.public_url_code,
+        "title": wall.title,
+        "theme": wall.theme,
+        "accent_color": wall.accent_color,
+        "background_animation": wall.background_animation,
+        "background_color": wall.background_color,
+        "animation_intensity": wall.animation_intensity,
+        "is_active": wall.is_active,
+        "opens_at": wall.opens_at,
+        "closes_at": wall.closes_at,
+        "photos": photo_data
+    }
+
+
 @router.get("/birthday-wall/{wall_code}")
 async def get_birthday_wall(
     wall_code: str, 
@@ -268,15 +342,23 @@ async def get_birthday_wall(
             detail="Birthday wall not found"
         )
     
-    # Get photos
-    photos = db.query(WallPhoto).filter(
-        WallPhoto.wall_id == wall.id,
-        WallPhoto.is_approved == True
-    ).order_by(WallPhoto.display_order).all()
+    # Get photos (include unapproved for owner, approved for others)
+    if user_id and wall.owner_id == user_id:
+        # Owner can see all photos including unapproved
+        photos = db.query(WallPhoto).filter(
+            WallPhoto.wall_id == wall.id
+        ).order_by(WallPhoto.display_order).all()
+    else:
+        # Others only see approved photos
+        photos = db.query(WallPhoto).filter(
+            WallPhoto.wall_id == wall.id,
+            WallPhoto.is_approved == True
+        ).order_by(WallPhoto.display_order).all()
     
-    # Increment view count
-    wall.view_count += 1
-    db.commit()
+    # Increment view count (only if not owner viewing their own wall)
+    if not user_id or wall.owner_id != user_id:
+        wall.view_count += 1
+        db.commit()
     
     # Get owner info
     owner = db.query(User).filter(User.id == wall.owner_id).first()
@@ -370,7 +452,8 @@ async def upload_photo_to_wall(
         caption=request.caption,
         uploaded_by_user_id=user_id,
         uploaded_by_name=user.first_name if user else "Guest",
-        display_order=photo_count
+        display_order=photo_count,
+        is_approved=True  # Auto-approve photos uploaded by the wall owner
     )
     db.add(photo)
     db.commit()

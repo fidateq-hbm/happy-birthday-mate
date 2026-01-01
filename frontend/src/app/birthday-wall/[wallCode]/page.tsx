@@ -108,9 +108,13 @@ export default function BirthdayWallPage() {
 
   const fetchWall = async () => {
     try {
+      setLoading(true);
       const response = await roomAPI.getBirthdayWall(wallCode, user?.id);
       setWall(response.data);
+      console.log('Wall fetched:', response.data);
+      console.log('Photos count:', response.data.photos?.length || 0);
     } catch (error) {
+      console.error('Error fetching wall:', error);
       toast.error('Birthday Wall not found');
       router.push('/dashboard');
     } finally {

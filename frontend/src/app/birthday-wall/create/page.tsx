@@ -55,6 +55,7 @@ export default function CreateBirthdayWallPage() {
   const [animationIntensity, setAnimationIntensity] = useState('medium');
   const [creating, setCreating] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -69,6 +70,33 @@ export default function CreateBirthdayWallPage() {
     }
   }, [user, loading, router]);
 
+  // Check for existing wall on mount
+  useEffect(() => {
+    const checkExistingWall = async () => {
+      if (!user) return;
+      
+      setCheckingExisting(true);
+      try {
+        const response = await roomAPI.getUserBirthdayWall(user.id);
+        // Wall exists - redirect to it
+        toast.success('You already have a birthday wall! Redirecting...');
+        router.push(`/birthday-wall/${response.data.public_url_code}`);
+      } catch (error: any) {
+        // No existing wall - allow creation
+        if (error.response?.status === 404) {
+          setCheckingExisting(false);
+        } else {
+          console.error('Error checking existing wall:', error);
+          setCheckingExisting(false);
+        }
+      }
+    };
+
+    if (user && !loading) {
+      checkExistingWall();
+    }
+  }, [user, loading, router]);
+
   const handleCreate = async () => {
     if (!user) return;
 
@@ -78,7 +106,17 @@ export default function CreateBirthdayWallPage() {
         title,
         theme,
         accent_color: accentColor,
+        background_animation: backgroundAnimation,
+        background_color: backgroundColor,
+        animation_intensity: animationIntensity,
       });
+
+      // Check if wall already exists (backend returns existing wall)
+      if (response.data.message === 'Wall already exists') {
+        toast.success('You already have a birthday wall! Redirecting...');
+        router.push(`/birthday-wall/${response.data.public_url_code}`);
+        return;
+      }
 
       toast.success('Birthday Wall created! 🎉');
       router.push(`/birthday-wall/${response.data.public_url_code}`);
@@ -113,10 +151,15 @@ export default function CreateBirthdayWallPage() {
     }
   };
 
-  if (loading || !user) {
+  if (loading || !user || checkingExisting) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {checkingExisting ? 'Checking for existing wall...' : 'Loading...'}
+          </p>
+        </div>
       </div>
     );
   }

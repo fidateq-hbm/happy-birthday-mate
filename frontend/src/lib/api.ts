@@ -88,6 +88,8 @@ export const roomAPI = {
     api.post(`/rooms/${roomId}/join`, { invite_code: inviteCode, user_id: userId }),
   createBirthdayWall: (userId: number, data: any) =>
     api.post(`/rooms/birthday-wall?user_id=${userId}`, data),
+  getUserBirthdayWall: (userId: number) =>
+    api.get(`/rooms/birthday-wall/user/${userId}`),
   getBirthdayWall: (wallCode: string, userId?: number) =>
     api.get(`/rooms/birthday-wall/${wallCode}`, { 
       params: userId ? { user_id: userId } : {} 
