@@ -538,6 +538,46 @@ async def get_user_activities(
     }
 
 
+@router.post("/run-migrations")
+async def run_migrations_endpoint():
+    """
+    Manually trigger database migrations.
+    Useful for debugging migration issues.
+    """
+    try:
+        from alembic.config import Config
+        from alembic import command
+        from pathlib import Path
+        import sys
+        
+        backend_path = Path(__file__).parent.parent.parent.parent
+        alembic_ini_path = backend_path / "alembic.ini"
+        
+        if not alembic_ini_path.exists():
+            return {
+                "success": False,
+                "error": f"alembic.ini not found at {alembic_ini_path}"
+            }
+        
+        alembic_cfg = Config(str(alembic_ini_path))
+        
+        # Run migrations
+        command.upgrade(alembic_cfg, "head")
+        
+        return {
+            "success": True,
+            "message": "✅ Migrations completed successfully!"
+        }
+        
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+
 @router.post("/seed-initial-data")
 async def seed_initial_data(db: Session = Depends(get_db)):
     """
