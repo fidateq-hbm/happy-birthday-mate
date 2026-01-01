@@ -21,7 +21,20 @@ from app.models.admin import Celebrity
 from datetime import datetime, date
 
 # Import the celebrities database
-from celebrities_database import get_celebrities_for_date
+# Try relative import first, then absolute
+try:
+    from .celebrities_database import get_celebrities_for_date
+except ImportError:
+    # If relative import fails, try absolute
+    try:
+        from database.celebrities_database import get_celebrities_for_date
+    except ImportError:
+        # Last resort: direct import (when running as script)
+        import sys
+        database_dir = Path(__file__).parent
+        if str(database_dir) not in sys.path:
+            sys.path.insert(0, str(database_dir))
+        from celebrities_database import get_celebrities_for_date
 
 def seed_celebrities_for_today():
     """Add celebrities for today's date"""
