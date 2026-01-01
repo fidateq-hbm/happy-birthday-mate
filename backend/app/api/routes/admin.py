@@ -586,42 +586,63 @@ async def seed_initial_data(db: Session = Depends(get_db)):
     """
     try:
         import sys
+        import os
         from pathlib import Path
         
-        # Import seed functions
-        backend_path = Path(__file__).parent.parent.parent.parent
-        sys.path.insert(0, str(backend_path))
+        # Get project root (database folder is at project root, sibling of backend)
+        # From backend/app/api/routes/admin.py, go up to project root
+        current_file = Path(__file__).resolve()
+        # backend/app/api/routes/admin.py -> backend/app/api/routes -> backend/app/api -> backend/app -> backend -> project_root
+        project_root = current_file.parent.parent.parent.parent.parent
+        database_path = project_root / "database"
         
-        # Check if data already exists
-        existing_gifts = db.query(GiftCatalog).count()
-        existing_celebrities = db.query(Celebrity).count()
+        # Add project root to path so we can import database modules
+        if str(project_root) not in sys.path:
+            sys.path.insert(0, str(project_root))
         
-        results = {
-            "gifts_seeded": False,
-            "celebrities_seeded": False,
-            "message": ""
-        }
+        # Also add backend to path for imports
+        backend_path = project_root / "backend"
+        if str(backend_path) not in sys.path:
+            sys.path.insert(0, str(backend_path))
         
-        # Seed gift catalog
-        if existing_gifts == 0:
-            try:
-                from database.seed_gift_catalog import seed_gift_catalog
-                seed_gift_catalog()
-                results["gifts_seeded"] = True
-                results["message"] += f"✅ Seeded gift catalog. "
-            except Exception as e:
-                results["message"] += f"⚠️ Gift catalog error: {str(e)}. "
-        else:
-            results["message"] += f"ℹ️ Gift catalog already has {existing_gifts} items. "
+        # Change to project root directory for seed scripts
+        original_cwd = os.getcwd()
+        os.chdir(str(project_root))
         
-        # Seed celebrities for today
         try:
-            from database.seed_celebrities_for_today import seed_celebrities_for_today
-            seed_celebrities_for_today()
-            results["celebrities_seeded"] = True
-            results["message"] += "✅ Seeded celebrities for today."
-        except Exception as e:
-            results["message"] += f"⚠️ Celebrities error: {str(e)}. "
+            # Check if data already exists
+            existing_gifts = db.query(GiftCatalog).count()
+            existing_celebrities = db.query(Celebrity).count()
+            
+            results = {
+                "gifts_seeded": False,
+                "celebrities_seeded": False,
+                "message": ""
+            }
+            
+            # Seed gift catalog
+            if existing_gifts == 0:
+                try:
+                    from database.seed_gift_catalog import seed_gift_catalog
+                    seed_gift_catalog()
+                    results["gifts_seeded"] = True
+                    results["message"] += f"✅ Seeded gift catalog. "
+                except Exception as e:
+                    results["message"] += f"⚠️ Gift catalog error: {str(e)}. "
+            else:
+                results["message"] += f"ℹ️ Gift catalog already has {existing_gifts} items. "
+            
+            # Seed celebrities for today
+            try:
+                from database.seed_celebrities_for_today import seed_celebrities_for_today
+                seed_celebrities_for_today()
+                results["celebrities_seeded"] = True
+                results["message"] += "✅ Seeded celebrities for today."
+            except Exception as e:
+                results["message"] += f"⚠️ Celebrities error: {str(e)}. "
+        finally:
+            # Restore original working directory
+            os.chdir(original_cwd)
         
         return {
             "success": True,
