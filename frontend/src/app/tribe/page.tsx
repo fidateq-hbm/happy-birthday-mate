@@ -99,6 +99,7 @@ export default function TribePage() {
   }
 
   const birthDate = new Date(user.date_of_birth);
+  const birthDay = birthDate.getDate();
   const monthName = birthDate.toLocaleString('default', { month: 'long' });
 
   return (
@@ -115,7 +116,7 @@ export default function TribePage() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Cake className="w-8 h-8 text-primary-600" />
             <h1 className="text-3xl md:text-4xl font-bold gradient-text">
-              {monthName} {user.birth_day}
+              {monthName} {birthDay}
             </h1>
           </div>
           <p className="text-gray-600 mb-4">
@@ -145,7 +146,7 @@ export default function TribePage() {
             <div>
               <h3 className="font-bold text-lg mb-2">About Birthday Tribes</h3>
               <p className="text-sm text-gray-600">
-                Everyone born on {monthName} {user.birth_day} is part of this tribe. 
+                Everyone born on {monthName} {birthDay} is part of this tribe. 
                 Connect, celebrate together, and make your birthday unforgettable! 
                 On your birthday, you all celebrate as one global community for 24 magical hours.
               </p>
@@ -230,7 +231,7 @@ export default function TribePage() {
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold mb-2">No tribe members yet</h3>
             <p className="text-gray-500 mb-4">
-              Be the first to celebrate on {monthName} {user.birth_day}!
+              Be the first to celebrate on {monthName} {birthDay}!
             </p>
             <button
               onClick={fetchTribeMembers}

@@ -83,7 +83,7 @@ export function MobileCelebrantCarousel({ celebrants, totalCount }: MobileCelebr
   return (
     <div className="relative w-full h-96 overflow-hidden px-2 sm:px-4 py-8 touch-pan-y" ref={constraintsRef}>
       {/* Total count banner */}
-      {totalCount > 0 && (
+      {(totalCount ?? 0) > 0 && (
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ export function MobileCelebrantCarousel({ celebrants, totalCount }: MobileCelebr
         >
           <div className="glass-effect px-6 py-2 rounded-full shadow-lg flex items-center gap-2">
             <Cake className="w-4 h-4 text-primary-600" />
-            <span className="font-bold gradient-text text-lg">{totalCount}</span>
+            <span className="font-bold gradient-text text-lg">{totalCount ?? 0}</span>
             <span className="text-sm text-gray-600">celebrating</span>
           </div>
         </motion.div>

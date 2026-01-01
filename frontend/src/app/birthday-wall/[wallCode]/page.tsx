@@ -411,14 +411,14 @@ export default function BirthdayWallPage() {
                           className={`flex items-center gap-1 transition-colors ${
                             photo.user_reacted?.includes("❤️")
                               ? 'text-red-500' 
-                              : photo.reactions?.["❤️"] > 0
+                              : (photo.reactions?.["❤️"] ?? 0) > 0
                               ? 'text-red-400'
                               : 'text-gray-400 hover:text-red-500'
                           } ${reacting === photo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <Heart className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("❤️") ? 'currentColor' : 'none'} />
-                          {photo.reactions?.["❤️"] > 0 && (
-                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions["❤️"]}</span>
+                          {(photo.reactions?.["❤️"] ?? 0) > 0 && (
+                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions?.["❤️"] ?? 0}</span>
                           )}
                         </button>
                         <button 
@@ -427,14 +427,14 @@ export default function BirthdayWallPage() {
                           className={`flex items-center gap-1 transition-colors ${
                             photo.user_reacted?.includes("👍")
                               ? 'text-blue-500' 
-                              : photo.reactions?.["👍"] > 0
+                              : (photo.reactions?.["👍"] ?? 0) > 0
                               ? 'text-blue-400'
                               : 'text-gray-400 hover:text-blue-500'
                           } ${reacting === photo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <ThumbsUp className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("👍") ? 'currentColor' : 'none'} />
-                          {photo.reactions?.["👍"] > 0 && (
-                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions["👍"]}</span>
+                          {(photo.reactions?.["👍"] ?? 0) > 0 && (
+                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions?.["👍"] ?? 0}</span>
                           )}
                         </button>
                         <button 
@@ -443,14 +443,14 @@ export default function BirthdayWallPage() {
                           className={`flex items-center gap-1 transition-colors ${
                             photo.user_reacted?.includes("😊")
                               ? 'text-yellow-500' 
-                              : photo.reactions?.["😊"] > 0
+                              : (photo.reactions?.["😊"] ?? 0) > 0
                               ? 'text-yellow-400'
                               : 'text-gray-400 hover:text-yellow-500'
                           } ${reacting === photo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <Smile className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("😊") ? 'currentColor' : 'none'} />
-                          {photo.reactions?.["😊"] > 0 && (
-                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions["😊"]}</span>
+                          {(photo.reactions?.["😊"] ?? 0) > 0 && (
+                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions?.["😊"] ?? 0}</span>
                           )}
                         </button>
                       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react';
  * This page intercepts that, extracts the code, and redirects to our reset-password page
  * with the code preserved in the URL.
  */
-export default function FirebaseActionHandlerPage() {
+function FirebaseActionHandlerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -216,6 +216,21 @@ export default function FirebaseActionHandlerPage() {
         <p className="text-gray-600">Processing reset link...</p>
       </div>
     </div>
+  );
+}
+
+export default function FirebaseActionHandlerPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <FirebaseActionHandlerContent />
+    </Suspense>
   );
 }
 

@@ -122,7 +122,7 @@ export function CelebrantSpiral({ celebrants, totalCount }: CelebrantSpiralProps
           </motion.div>
 
           {/* Total count */}
-          {totalCount > 0 && (
+          {(totalCount ?? 0) > 0 && (
             <div className="space-y-1">
               <motion.p 
                 className="text-4xl font-black gradient-text"
@@ -131,7 +131,7 @@ export function CelebrantSpiral({ celebrants, totalCount }: CelebrantSpiralProps
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring" }}
               >
-                {totalCount}
+                {totalCount ?? 0}
               </motion.p>
               <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 Celebrating
@@ -154,7 +154,7 @@ export function CelebrantSpiral({ celebrants, totalCount }: CelebrantSpiralProps
           </AnimatePresence>
 
           {/* Countdown to refresh */}
-          {totalCount > displayCount && (
+          {(totalCount ?? 0) > displayCount && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

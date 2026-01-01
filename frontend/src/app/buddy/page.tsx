@@ -80,7 +80,11 @@ export default function BuddyPage() {
     );
   }
 
-  const isBirthday = isBirthdayToday(user.birth_month, user.birth_day);
+  // Extract month and day from date_of_birth
+  const birthDate = new Date(user.date_of_birth);
+  const birthMonth = birthDate.getMonth() + 1; // getMonth() returns 0-11
+  const birthDay = birthDate.getDate();
+  const isBirthday = isBirthdayToday(birthMonth, birthDay);
 
   return (
     <AuthProvider>
@@ -279,7 +283,7 @@ export default function BuddyPage() {
                             toast.success('Birthday buddy matched! 🎉');
                             await fetchBuddyStatus();
                           } else {
-                            toast.info(data.message || 'No match found yet. We\'ll notify you when someone with your birthday joins!');
+                            toast(data.message || 'No match found yet. We\'ll notify you when someone with your birthday joins!');
                           }
                         } catch (error: any) {
                           console.error('Error matching buddy:', error);

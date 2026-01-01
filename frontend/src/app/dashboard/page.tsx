@@ -79,7 +79,14 @@ export default function DashboardPage() {
   };
 
   const handleEnterTribeRoom = async () => {
-    if (!user || !isBirthdayToday(user.birth_month, user.birth_day)) {
+    if (!user) return;
+    
+    // Extract month and day from date_of_birth
+    const birthDate = new Date(user.date_of_birth);
+    const birthMonth = birthDate.getMonth() + 1; // getMonth() returns 0-11
+    const birthDay = birthDate.getDate();
+    
+    if (!isBirthdayToday(birthMonth, birthDay)) {
       toast.error('Tribe room only opens on your birthday!');
       return;
     }
@@ -100,8 +107,12 @@ export default function DashboardPage() {
     );
   }
 
-  const daysUntil = daysUntilBirthday(user.birth_month, user.birth_day);
-  const isBirthday = isBirthdayToday(user.birth_month, user.birth_day);
+  // Extract month and day from date_of_birth
+  const birthDate = new Date(user.date_of_birth);
+  const birthMonth = birthDate.getMonth() + 1; // getMonth() returns 0-11
+  const birthDay = birthDate.getDate();
+  const daysUntil = daysUntilBirthday(birthMonth, birthDay);
+  const isBirthday = isBirthdayToday(birthMonth, birthDay);
 
   return (
     <AuthProvider>
