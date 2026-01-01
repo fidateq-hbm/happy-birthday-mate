@@ -25,28 +25,55 @@ def run_migrations():
     try:
         from alembic.config import Config
         from alembic import command
-        import os
-        
-        # Get absolute path to alembic.ini
-        backend_dir = Path(__file__).parent
-        alembic_ini_path = backend_dir / "alembic.ini"
-        
-        if not alembic_ini_path.exists():
-            print(f"❌ ERROR: alembic.ini not found at {alembic_ini_path}")
-            return
-        
-        alembic_cfg = Config(str(alembic_ini_path))
+        from sqlalchemy import inspect, text
+        from app.core.database import engine, Base
+        import app.models  # Import all models to register them
         
         # Ensure DATABASE_URL is set
         if not settings.DATABASE_URL or settings.DATABASE_URL.startswith("postgresql://user:password"):
             print("⚠️  WARNING: DATABASE_URL not properly configured. Skipping migrations.")
             return
         
-        print("🔄 Running database migrations...")
+        print("🔄 Checking database state...")
         print(f"   Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'configured'}")
         
-        command.upgrade(alembic_cfg, "head")
-        print("✅ Database migrations completed successfully!")
+        # Check if alembic_version table exists (indicates migrations have been run)
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        has_alembic_version = 'alembic_version' in tables
+        
+        if not has_alembic_version:
+            # First time setup - create all tables from models
+            print("📦 First-time setup: Creating all database tables...")
+            Base.metadata.create_all(bind=engine)
+            print("✅ All tables created successfully!")
+            
+            # Now stamp the database with the latest migration
+            print("📝 Stamping database with latest migration...")
+            backend_dir = Path(__file__).parent
+            alembic_ini_path = backend_dir / "alembic.ini"
+            if alembic_ini_path.exists():
+                alembic_cfg = Config(str(alembic_ini_path))
+                # Get the latest revision
+                from alembic.script import ScriptDirectory
+                script = ScriptDirectory.from_config(alembic_cfg)
+                head_revision = script.get_current_head()
+                if head_revision:
+                    command.stamp(alembic_cfg, head_revision)
+                    print(f"✅ Database stamped with revision: {head_revision}")
+        else:
+            # Run migrations normally
+            print("🔄 Running database migrations...")
+            backend_dir = Path(__file__).parent
+            alembic_ini_path = backend_dir / "alembic.ini"
+            
+            if not alembic_ini_path.exists():
+                print(f"❌ ERROR: alembic.ini not found at {alembic_ini_path}")
+                return
+            
+            alembic_cfg = Config(str(alembic_ini_path))
+            command.upgrade(alembic_cfg, "head")
+            print("✅ Database migrations completed successfully!")
         
     except Exception as e:
         import traceback
