@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { CelebrantSpiral } from '@/components/CelebrantSpiral';
+import { MobileCelebrantCarousel } from '@/components/MobileCelebrantCarousel';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
 import { DigitalGiftEffects } from '@/components/DigitalGiftEffects';
@@ -251,13 +252,23 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Celebrant Spiral - Hidden on mobile (too complex for small screens) */}
+          {/* Celebrant Spiral - Desktop view */}
           {celebrants.length > 0 && !isMobile && (
             <div className="glass-effect rounded-2xl md:rounded-3xl p-6 md:p-8">
               <h3 className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6 gradient-text">
                 Your Birthday Mates
               </h3>
-              <CelebrantSpiral celebrants={celebrants} />
+              <CelebrantSpiral celebrants={celebrants} totalCount={tribeInfo?.member_count} />
+            </div>
+          )}
+
+          {/* Mobile Celebrant Carousel - Mobile view */}
+          {celebrants.length > 0 && isMobile && (
+            <div className="glass-effect rounded-2xl p-6">
+              <h3 className="text-xl font-bold text-center mb-4 gradient-text">
+                Your Birthday Mates
+              </h3>
+              <MobileCelebrantCarousel celebrants={celebrants} totalCount={tribeInfo?.member_count} />
             </div>
           )}
 
