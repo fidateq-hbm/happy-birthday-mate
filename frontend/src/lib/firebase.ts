@@ -26,7 +26,17 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 }
 
 // Initialize Firebase only if it hasn't been initialized
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Use dummy values during build if env vars are missing (Vercel build-time safety)
+const safeConfig = {
+  apiKey: firebaseConfig.apiKey || 'build-time-placeholder',
+  authDomain: firebaseConfig.authDomain || 'placeholder.firebaseapp.com',
+  projectId: firebaseConfig.projectId || 'placeholder-project',
+  storageBucket: firebaseConfig.storageBucket || 'placeholder.appspot.com',
+  messagingSenderId: firebaseConfig.messagingSenderId || '123456789',
+  appId: firebaseConfig.appId || '1:123456789:web:placeholder',
+};
+
+const app = getApps().length === 0 ? initializeApp(safeConfig) : getApps()[0];
 
 export const auth = getAuth(app);
 export const storage = getStorage(app);
