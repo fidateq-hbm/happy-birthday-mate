@@ -1,0 +1,5 @@
+Superbase Setup for Happy Birthday Mate
+
+PostgreSQL Database Password: XwZK9563sKXmoAfQ2m79wM4cV7pRrF
+
+Database URL: postgresql://postgres:XwZK9563sKXmoAfQ2m79wM4cV7pRrF@db.mudzptplyyzsylutfmsd.supabase.co:5432/postgres

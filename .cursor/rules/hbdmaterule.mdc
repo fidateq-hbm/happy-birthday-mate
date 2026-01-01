@@ -1,0 +1,282 @@
+HAPPY BIRTHDAY MATE
+Master Product Bible (A–Z)
+
+1. PRODUCT ESSENCE & VISION
+Happy Birthday Mate is a global, ritual-based digital celebration platform built around one universal human truth: everyone has a birthday.
+The platform exists to ensure that no one celebrates alone, to reveal the hidden joy of shared birthdays, and to transform birthdays from isolated personal events into collective global rituals.
+Happy Birthday Mate is not a social network, not a messaging app, not a mental health platform, and not an event planner.
+It is a time-bound celebration engine designed to:
+•	Create anticipation
+•	Enable joyful connection
+•	Provide dignified recognition
+•	Close celebrations gently
+Wonder is created through timing, ritual, motion, and human presence, not through infinite content or algorithmic noise.
+
+2. CORE PHILOSOPHY (NON NEGOTIABLE)
+1.	Birthdays are the identity anchor
+2.	Celebration is time bound and sacred
+3.	Visibility is intentional and temporary
+4.	Joy always precedes monetization
+5.	Platform owned digital goods are primary
+6.	Global first, Africa inclusive by design
+7.	Emotional safety, privacy, and consent are foundational
+8.	Ritual over engagement metrics
+Every feature, rule, and exclusion exists to serve these principles.
+
+3. TARGET AUDIENCE (FULLY INCLUSIVE)
+•	All ages are welcome: from children to centenarians (0–100+)
+•	Core digital engagement focus: ages 15–60
+•	Elder inclusion (60+):
+o	Family assisted onboarding allowed
+o	Simplified UI modes
+o	Celebration spotlight for elders
+The platform celebrates life across generations.
+
+4. USER ROLES
+4.1 Registered User
+•	Verified account
+•	Automatically assigned to a birthday tribe
+•	Can celebrate, host personal rooms, receive gifts
+4.2 Invited Guest
+•	Access via invite link
+•	Can only participate in a specific personal birthday room
+•	No tribe access
+4.3 Admin / Moderator
+•	Platform oversight
+•	Moderation tools
+•	Analytics access
+•	No social participation
+5. AUTHENTICATION & ONBOARDING
+Authentication Methods
+•	Email + password
+•	Optional Google sign in
+•	Service: Firebase Authentication
+Required Signup Data
+•	First name
+•	Date of birth (MM DD used for tribe logic)
+•	Gender (Male / Female / Prefer not to say)
+•	Country
+•	State
+•	Profile picture (mandatory)
+•	Consent confirmation (GDPR compliant)
+Optional Data
+•	City (text only, non precise)
+Explicitly Excluded
+•	Interests
+•	Personality traits
+•	Emotional diagnostics
+•	Relationship data
+•	Exact GPS location
+
+6. USER PROFILE & IDENTITY
+•	Profile picture is mandatory (users should be made to know why their photo is required).
+•	Used across:
+o	Homepage celebrant spiral
+o	Birthday tribe rooms
+o	Personal birthday rooms
+o	State level celebrant visibility
+Profile Change Rules
+•	Can be changed up to 48 hours before birthday
+•	Can be changed on birthday day
+•	Rate limited and moderation protected
+
+7. BIRTHDAY TRIBE SYSTEM (FOUNDATIONAL LOGIC)
+Automatic Assignment
+•	Users are automatically assigned to a tribe based on MM DD
+•	Example: March 14 → Tribe 03 14
+•	No browsing, joining, switching, or searching tribes
+Tribe Lifecycle
+•	Tribe is inactive outside the birthday
+•	Unlocks ceremonially at 00:00 local time
+•	Active for 24 hours
+•	Auto closes and becomes read only
+•	Closure is gentle and clearly communicated
+
+8. BIRTHDAY TRIBE ROOM (GROUP CELEBRATION)
+Purpose
+Shared joy among birthday mates only
+Duration
+•	24 hours only
+
+Allowed Interactions
+•	Text messages
+•	Emoji reactions
+Excluded
+•	Media uploads
+•	Voice or video
+•	Threads
+•	Persistent chat history
+The room prioritizes presence over performance.
+
+9. PERSONAL BIRTHDAY ROOM (CORE EXPERIENCE)
+Creation
+•	Automatically available to celebrant on birthday day
+•	Exists for 24 hours
+Participants
+Birthday Mates
+•	Auto present
+•	Clearly labeled
+Invited Guests
+•	Join via celebrant generated invite link
+•	Must register or log in
+•	Clearly labeled as “Guest”
+Invite Rules
+•	Only celebrant can generate links
+•	Room specific
+•	Time limited
+•	Guest count limits
+•	Guests cannot invite others
+
+10. BIRTHDAY WALL (PHOTO CELEBRATION SPACE)
+Purpose
+A beautiful, temporary photo memory wall
+Rules
+•	Created manually by celebrant
+•	Photos only (no video)
+•	Limited uploads
+•	Opens 24 hours before birthday
+•	Closes 48 hours after birthday
+Access
+•	View only
+•	Shareable public link
+•	Emoji reactions allowed
+•	No comments in V1
+Beautification
+•	Themes
+•	Frames
+•	Accent colors
+•	Subtle animations
+
+11. 1 ON 1 BIRTHDAY BUDDY
+Purpose
+Guarantee at least one meaningful connection
+Rules
+•	One automatic pairing per birthday
+•	Birthday mates only
+•	Text only
+•	Anonymous until first message
+•	No rematching
+•	Can be ignored
+
+12. STATE LEVEL CELEBRANT VISIBILITY
+Default Mode
+•	“X people are celebrating today in your state”
+•	No names or profiles
+Opt In Mode
+•	Users may enable visibility
+•	Shows name + profile picture
+•	Visibility lasts 24 hours
+Exclusions
+•	No maps
+•	No distances
+•	No direct contact
+
+13. PRE BIRTHDAY AWARENESS
+Allowed
+•	Birthday countdown
+•	Anticipation messaging
+•	Nearby celebrant counts
+Not Allowed
+•	Messaging
+•	Planning tools
+•	Group creation
+
+14. AI FEATURES (V1)
+AI Generated Birthday Quotes
+•	Personalized using name, age, culture
+•	Generated server side
+•	Used in:
+o	Birthday rooms
+o	Digital cards
+Curated Joy Feeds
+•	Celebration only content
+•	No emotional profiling
+Emotion Tracking
+•	Passive sentiment detection for safety
+•	No user facing emotional dashboards
+
+15. MONETIZATION SYSTEM
+A. Platform Owned Digital Gifts (PRIMARY)
+•	Premium digital cards
+•	Confetti & animation effects
+•	Birthday wall highlights
+•	Temporary celebrant badges
+•	Featured message placement
+B. Third Party Digital Gifts (SECONDARY)
+•	Gift cards (Amazon, Netflix, Spotify, etc.)
+•	API / affiliate based
+•	Instant delivery
+•	No inventory
+C. Platform-Branded Merchandise (Non-Marketplace)
+• T-shirts, hoodies, mugs
+• Happy Birthday Mate–owned designs only
+• Examples:
+– “Kings Are Born in June”
+– “Queens Are Born in June”
+• Produced and fulfilled by third-party print-on-demand partners (Printful / Gelato)
+• No third-party sellers, storefronts, or listings
+16. PAYMENT INFRASTRUCTURE
+•	Stripe (global)
+•	PayPal (fallback)
+•	Paystack (Africa)
+Payment options auto selected by country.
+
+17. HOMEPAGE EXPERIENCE
+Celebrant Spiral
+•	Real celebrants only
+•	Slow, continuous motion
+•	Human first visual priority
+Celebrity Birthday Twin
+•	One celebrity per date
+•	Flips calmly
+•	Cultural delight only
+
+18. DIGITAL MARKETING (CORE)
+•	Always on birthday content engine
+•	UGC driven virality
+•	Influencer birthday partnerships
+•	Seasonal birthday campaigns
+•	Data driven ad targeting
+Digital marketing is integral, not optional.
+
+19. ADMIN & MODERATION
+•	Content flagging
+•	User moderation
+•	Action logs
+•	Analytics dashboard (internal only)
+
+20. PRIVACY, CONSENT & COMPLIANCE
+•	GDPR compliant consent
+•	Data export & deletion
+•	No selling emotional data
+
+21. TECHNICAL ARCHITECTURE
+Frontend
+•	Next.js
+•	Tailwind CSS
+Backend
+•	FastAPI (Python)
+Database
+•	PostgreSQL (local + production)
+Auth
+•	Firebase Authentication
+Infrastructure
+•	Namecheap (domain & hosting)
+•	Cloudflare (CDN, DDoS, rate limiting)
+
+22. DELIBERATE EXCLUSIONS (LOCKED)
+•	Persistent chats
+•	Social feeds
+•	Video/voice
+•	Physical gift logistics in V1
+•	Gamification
+•	Maps
+
+FINAL DECLARATION
+Happy Birthday Mate is a ritual engine, not a content machine.
+It creates moments, not addiction. It celebrates presence, not performance.
+This document is the single source of truth for all design, development, AI generation, and future expansion.
+
+---
+alwaysApply: true
+---
