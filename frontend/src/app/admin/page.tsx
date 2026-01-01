@@ -61,6 +61,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+      return;
+    }
+    // Check if user is admin
+    if (user && !user.is_admin) {
+      toast.error('Admin access required');
+      router.push('/dashboard');
     }
   }, [user, loading, router]);
 

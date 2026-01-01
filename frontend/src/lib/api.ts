@@ -118,31 +118,63 @@ export const giftAPI = {
     api.get(`/gifts/active/${userId}`),
 };
 
+// Helper to get firebase_uid for admin calls
+const getFirebaseUid = async (): Promise<string | null> => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const { auth } = await import('./firebase');
+    return auth.currentUser?.uid || null;
+  } catch {
+    return null;
+  }
+};
+
 // Admin endpoints
 export const adminAPI = {
-  addCelebrity: (data: any) => api.post('/admin/celebrities', data),
+  addCelebrity: async (data: any) => {
+    const firebaseUid = await getFirebaseUid();
+    return api.post(`/admin/celebrities?firebase_uid=${firebaseUid}`, data);
+  },
   getCelebritiesToday: () => api.get('/admin/celebrities/today'),
   flagContent: (userId: number, data: any) =>
     api.post('/admin/flag-content', { ...data, user_id: userId }),
-  getFlaggedContent: (status?: string, limit?: number) =>
-    api.get('/admin/flagged-content', { params: { status, limit } }),
+  getFlaggedContent: async (status?: string, limit?: number) => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/flagged-content', { params: { status, limit, firebase_uid: firebaseUid } });
+  },
   getStats: () => api.get('/admin/stats/overview'),
   getStateCelebrants: (state: string) =>
     api.get(`/admin/celebrants/state/${state}`),
   // Analytics endpoints
-  getAnalyticsOverview: (days: number = 30) =>
-    api.get('/admin/analytics/overview', { params: { days } }),
-  getUserGrowth: (days: number = 30) =>
-    api.get('/admin/analytics/user-growth', { params: { days } }),
-  getEngagementMetrics: (days: number = 30) =>
-    api.get('/admin/analytics/engagement', { params: { days } }),
-  getGeographicAnalytics: () => api.get('/admin/analytics/geographic'),
-  getTribeAnalytics: () => api.get('/admin/analytics/tribes'),
+  getAnalyticsOverview: async (days: number = 30) => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/analytics/overview', { params: { days, firebase_uid: firebaseUid } });
+  },
+  getUserGrowth: async (days: number = 30) => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/analytics/user-growth', { params: { days, firebase_uid: firebaseUid } });
+  },
+  getEngagementMetrics: async (days: number = 30) => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/analytics/engagement', { params: { days, firebase_uid: firebaseUid } });
+  },
+  getGeographicAnalytics: async () => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/analytics/geographic', { params: { firebase_uid: firebaseUid } });
+  },
+  getTribeAnalytics: async () => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/analytics/tribes', { params: { firebase_uid: firebaseUid } });
+  },
   // Activity monitoring endpoints
-  getRecentActivities: (limit: number = 50, activityType?: string) =>
-    api.get('/admin/activities/recent', { params: { limit, activity_type: activityType } }),
-  getUserActivities: (userId?: number, limit: number = 50) =>
-    api.get('/admin/activities/users', { params: { user_id: userId, limit } }),
+  getRecentActivities: async (limit: number = 50, activityType?: string) => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/activities/recent', { params: { limit, activity_type: activityType, firebase_uid: firebaseUid } });
+  },
+  getUserActivities: async (userId?: number, limit: number = 50) => {
+    const firebaseUid = await getFirebaseUid();
+    return api.get('/admin/activities/users', { params: { user_id: userId, limit, firebase_uid: firebaseUid } });
+  },
 };
 
 // Upload endpoints

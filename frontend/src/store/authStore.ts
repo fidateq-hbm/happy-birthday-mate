@@ -14,6 +14,7 @@ interface User {
   profile_picture_url: string;
   tribe_id: string;
   state_visibility_enabled: boolean;
+  is_admin?: boolean;
   created_at: string;
 }
 

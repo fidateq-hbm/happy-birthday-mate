@@ -11,8 +11,27 @@ from app.models import (
     User, Celebrity, ModerationLog, FlaggedContent,
     ModerationActionEnum, ContentTypeEnum, Room, Message, Gift, BirthdayWall, GiftCatalog
 )
+from fastapi import Request
 
 router = APIRouter()
+
+
+def require_admin(firebase_uid: str = Query(..., description="Firebase UID for authentication"), db: Session = Depends(get_db)):
+    """Dependency to check if user is admin"""
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    return user
 
 
 class AddCelebrityRequest(BaseModel):
@@ -31,7 +50,10 @@ class FlagContentRequest(BaseModel):
 
 
 @router.post("/celebrities")
-async def add_celebrity(request: AddCelebrityRequest, db: Session = Depends(get_db)):
+async def add_celebrity(
+    request: AddCelebrityRequest, 
+    admin_user: User = Depends(require_admin)
+):
     """Add a celebrity to the database"""
     
     celebrity = Celebrity(
@@ -104,6 +126,7 @@ async def flag_content(
 async def get_flagged_content(
     status: str = "pending",
     limit: int = 50,
+    admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get flagged content for moderation"""
@@ -193,6 +216,7 @@ async def get_state_celebrants(state: str, db: Session = Depends(get_db)):
 @router.get("/analytics/overview")
 async def get_analytics_overview(
     days: int = Query(30, ge=1, le=365),
+    admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get comprehensive analytics overview"""
@@ -249,6 +273,7 @@ async def get_analytics_overview(
 @router.get("/analytics/user-growth")
 async def get_user_growth(
     days: int = Query(30, ge=1, le=365),
+    admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get user growth over time"""
@@ -280,6 +305,7 @@ async def get_user_growth(
 @router.get("/analytics/engagement")
 async def get_engagement_metrics(
     days: int = Query(30, ge=1, le=365),
+    admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get engagement metrics over time"""
@@ -334,7 +360,10 @@ async def get_engagement_metrics(
 
 
 @router.get("/analytics/geographic")
-async def get_geographic_analytics(db: Session = Depends(get_db)):
+async def get_geographic_analytics(
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
     """Get geographic distribution of users"""
     
     # Top countries
@@ -375,7 +404,10 @@ async def get_geographic_analytics(db: Session = Depends(get_db)):
 
 
 @router.get("/analytics/tribes")
-async def get_tribe_analytics(db: Session = Depends(get_db)):
+async def get_tribe_analytics(
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
     """Get birthday tribe analytics"""
     
     # Tribe sizes
@@ -418,6 +450,7 @@ async def get_tribe_analytics(db: Session = Depends(get_db)):
 async def get_recent_activities(
     limit: int = Query(50, ge=1, le=200),
     activity_type: Optional[str] = Query(None),
+    admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get recent platform activities"""
@@ -497,6 +530,7 @@ async def get_recent_activities(
 async def get_user_activities(
     user_id: Optional[int] = Query(None),
     limit: int = Query(50, ge=1, le=200),
+    admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get activities for a specific user or all users"""
