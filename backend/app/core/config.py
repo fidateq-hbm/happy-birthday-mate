@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     
     # Firebase
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-credentials.json"
+    FIREBASE_CREDENTIALS: str = ""  # JSON content as string (for Render/cloud deployments)
     
     # Payment
     STRIPE_SECRET_KEY: str = ""

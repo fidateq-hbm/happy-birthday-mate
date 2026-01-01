@@ -16,8 +16,18 @@ router = APIRouter()
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
     try:
-        cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
-        firebase_admin.initialize_app(cred)
+        # Try environment variable first (for Render/cloud deployments)
+        if settings.FIREBASE_CREDENTIALS:
+            import json
+            cred_dict = json.loads(settings.FIREBASE_CREDENTIALS)
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+        # Fallback to file path (for local development)
+        elif os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
+            cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+            firebase_admin.initialize_app(cred)
+        else:
+            print(f"Warning: Firebase credentials not found. Set FIREBASE_CREDENTIALS env var or {settings.FIREBASE_CREDENTIALS_PATH} file.")
     except Exception as e:
         print(f"Warning: Firebase Admin SDK not initialized: {e}")
 
