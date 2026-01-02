@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   description: "A global, ritual-based digital celebration platform where no one celebrates alone",
   manifest: '/manifest.json',
   themeColor: '#667eea',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
+    ],
+    apple: '/favicon.svg',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
