@@ -166,7 +166,7 @@ const FAQ_DATA: FAQItem[] = [
   {
     category: 'privacy',
     question: 'Can I report inappropriate content?',
-    answer: 'Yes! Use the report/flag feature on any content. Our moderation team reviews all reports and takes appropriate action to keep the platform safe and celebratory.'
+    answer: 'Yes! If you encounter inappropriate content, please contact our support team at support@happybirthdaymate.com with details about the content. Our moderation team reviews all reports and takes appropriate action to keep the platform safe and celebratory.'
   },
   {
     category: 'privacy',
