@@ -25,6 +25,15 @@ export async function GET(
     // Get backend API URL
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     
+    // Warn if using localhost in production (likely misconfiguration)
+    if (apiUrl.includes('localhost') && process.env.NODE_ENV === 'production') {
+      console.error('⚠️ WARNING: NEXT_PUBLIC_API_URL is set to localhost in production!', {
+        apiUrl,
+        imagePath,
+        hint: 'Set NEXT_PUBLIC_API_URL to your production backend URL in Vercel environment variables'
+      });
+    }
+    
     // Construct backend URL - backend serves static files at /uploads
     const backendUrl = `${apiUrl}/uploads/${imagePath}`;
     
@@ -32,7 +41,8 @@ export async function GET(
     console.log('Proxying image request:', {
       imagePath,
       backendUrl,
-      apiUrl
+      apiUrl,
+      nodeEnv: process.env.NODE_ENV
     });
     
     // Fetch image from backend
