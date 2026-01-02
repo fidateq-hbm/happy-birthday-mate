@@ -46,7 +46,7 @@ postgresql://postgres:your_password_here@db.abcdefghijklmnop.supabase.co:5432/po
 | Key | Value | Notes |
 |-----|-------|-------|
 | `DATABASE_URL` | `postgresql://postgres:password@host:port/database` | From Supabase (Step 1.2) |
-| `SECRET_KEY` | `4hncY-0vQ0ViHZBYHZ3aFqlNgGGdMn2wPJX9RGuxmlQ` | Use this or generate a new one |
+| `SECRET_KEY` | `generate-a-secure-random-key` | Generate using: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
 | `ALGORITHM` | `HS256` | JWT algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Token expiration time |
 | `FIREBASE_CREDENTIALS` | `{paste entire JSON content here}` | From Step 2.1 (see note below) |

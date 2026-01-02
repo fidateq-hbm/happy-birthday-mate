@@ -1,11 +1,14 @@
-# Security Incident Response - Exposed API Key
+# Security Incident Response - Exposed Secrets
 
-## ⚠️ CRITICAL: Google API Key Exposed
+## ⚠️ CRITICAL: Multiple Secrets Exposed
 
 **Date Detected:** January 1, 2026  
-**Key Type:** Google Gemini API Key  
 **Repository:** fidateq-hbm/happy-birthday-mate  
 **Status:** 🔴 EXPOSED - IMMEDIATE ACTION REQUIRED
+
+### Exposed Secrets:
+1. ✅ **Google Gemini API Key** - ROTATED
+2. 🔄 **JWT SECRET_KEY** - NEEDS ROTATION
 
 ---
 

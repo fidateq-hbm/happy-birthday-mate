@@ -16,8 +16,10 @@ Or manually create `backend/.env` with this content:
 # Database Configuration
 DATABASE_URL=postgresql://postgres:password@localhost:5432/happy_birthday_mate
 
-# Security (Generated secret key)
-SECRET_KEY=4hncY-0vQ0ViHZBYHZ3aFqlNgGGdMn2wPJX9RGuxmlQ
+# Security - Generate a secure random secret key
+# Generate using: python -c "import secrets; print(secrets.token_urlsafe(32))"
+# Or use: openssl rand -hex 32
+SECRET_KEY=your-secret-key-here-generate-a-secure-random-key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
