@@ -8,6 +8,7 @@ from firebase_admin import auth as firebase_auth, credentials
 import os
 
 from app.core.database import get_db
+from app.core.auth import get_current_user
 from app.models import User, GenderEnum
 from app.core.config import settings
 
@@ -120,20 +121,16 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user(firebase_uid: str, db: Session = Depends(get_db)):
+async def get_current_user_endpoint(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
-    Get current user profile.
+    Get current user profile using Authorization header.
     Returns 404 if user hasn't completed onboarding (expected behavior).
     """
-    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
-    if not user:
-        # 404 is expected for users who haven't completed onboarding
-        # This is not an error, just means they need to complete signup
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found - may need to complete onboarding"
-        )
-    return user
+    # current_user is already fetched and validated by get_current_user dependency
+    return current_user
 
 
 @router.get("/verify-token")

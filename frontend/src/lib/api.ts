@@ -47,7 +47,7 @@ api.interceptors.response.use(
 // Auth endpoints
 export const authAPI = {
   signup: (data: any) => api.post('/auth/signup', data),
-  getMe: (firebaseUid: string) => api.get(`/auth/me?firebase_uid=${firebaseUid}`),
+  getMe: () => api.get('/auth/me'), // Uses Authorization header from interceptor
   verifyToken: (token: string) => api.get(`/auth/verify-token?token=${token}`),
 };
 
@@ -125,30 +125,16 @@ export const giftAPI = {
     api.get(`/gifts/active/${userId}`),
 };
 
-// Helper to get firebase_uid for admin calls
-const getFirebaseUid = async (): Promise<string | null> => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const { auth } = await import('./firebase');
-    return auth.currentUser?.uid || null;
-  } catch {
-    return null;
-  }
-};
+// Note: All admin endpoints now use Authorization header (Bearer token) from the interceptor
+// No need for firebase_uid query parameters anymore
 
-// Admin endpoints
+// Admin endpoints - All use Authorization header from interceptor
 export const adminAPI = {
-  addCelebrity: async (data: any) => {
-    const firebaseUid = await getFirebaseUid();
-    return api.post(`/admin/celebrities?firebase_uid=${firebaseUid}`, data);
-  },
+  addCelebrity: (data: any) => api.post('/admin/celebrities', data),
   getCelebritiesToday: () => api.get('/admin/celebrities/today'),
-  flagContent: (userId: number, data: any) =>
-    api.post('/admin/flag-content', { ...data, user_id: userId }),
-  getFlaggedContent: async (status?: string, limit?: number) => {
-    const firebaseUid = await getFirebaseUid();
-    return api.get('/admin/flagged-content', { params: { status, limit, firebase_uid: firebaseUid } });
-  },
+  flagContent: (data: any) => api.post('/admin/flag-content', data), // user_id extracted from token
+  getFlaggedContent: (status?: string, limit?: number) =>
+    api.get('/admin/flagged-content', { params: { status, limit } }),
   getStats: () => api.get('/admin/stats/overview'),
   getStateCelebrants: (state: string) =>
     api.get(`/admin/celebrants/state/${state}`),
