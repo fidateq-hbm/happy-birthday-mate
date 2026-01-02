@@ -122,6 +122,14 @@ export default function BirthdayWallPage() {
       setWall(response.data);
       console.log('Wall fetched:', response.data);
       console.log('Photos count:', response.data.photos?.length || 0);
+      // Log photo URLs for debugging
+      if (response.data.photos && response.data.photos.length > 0) {
+        console.log('Photo URLs:', response.data.photos.map((p: any) => ({
+          id: p.id,
+          original_url: p.photo_url,
+          normalized_url: normalizeImageUrl(p.photo_url)
+        })));
+      }
     } catch (error) {
       console.error('Error fetching wall:', error);
       toast.error('Birthday Wall not found');
@@ -514,10 +522,13 @@ export default function BirthdayWallPage() {
                         className={`w-full h-auto object-cover ${getFrameImageClass(photo.frame_style || 'none')} ${isMobile ? 'max-h-64' : ''}`}
                         loading="lazy"
                         onError={(e) => {
-                          // Fallback to placeholder if image fails to load
+                          // Fallback to data URI placeholder if image fails to load
                           const target = e.target as HTMLImageElement;
-                          target.src = 'https://via.placeholder.com/400x300?text=Photo+Not+Available';
-                          target.onerror = null; // Prevent infinite loop
+                          // Use a data URI to prevent network requests and infinite loops
+                          if (!target.src.startsWith('data:')) {
+                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBhdmFpbGFibGU8L3RleHQ+PC9zdmc+';
+                            target.onerror = null; // Prevent infinite loop
+                          }
                         }}
                       />
                     </div>
