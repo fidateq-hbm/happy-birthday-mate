@@ -7,6 +7,7 @@ from typing import Optional, List
 from collections import defaultdict
 
 from app.core.database import get_db
+from app.core.auth import require_admin, get_current_user
 from app.models import (
     User, Celebrity, ModerationLog, FlaggedContent,
     ModerationActionEnum, ContentTypeEnum, Room, Message, Gift, BirthdayWall, GiftCatalog
@@ -14,24 +15,6 @@ from app.models import (
 from fastapi import Request
 
 router = APIRouter()
-
-
-def require_admin(firebase_uid: str = Query(..., description="Firebase UID for authentication"), db: Session = Depends(get_db)):
-    """Dependency to check if user is admin"""
-    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
-    
-    return user
 
 
 class AddCelebrityRequest(BaseModel):
@@ -104,15 +87,15 @@ async def get_celebrities_today(db: Session = Depends(get_db)):
 @router.post("/flag-content")
 async def flag_content(
     request: FlagContentRequest,
-    user_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Flag inappropriate content"""
+    """Flag inappropriate content - requires authentication"""
     
     flagged = FlaggedContent(
         content_type=request.content_type,
         content_id=request.content_id,
-        reported_by_user_id=user_id,
+        reported_by_user_id=current_user.id,
         reason=request.reason,
         status="pending"
     )

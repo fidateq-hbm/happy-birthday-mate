@@ -5,6 +5,7 @@ from datetime import datetime, date
 from typing import Optional
 
 from app.core.database import get_db
+from app.core.auth import get_current_user, get_optional_user
 from app.models import User, ContactSubmission
 
 router = APIRouter()
@@ -21,23 +22,44 @@ class UpdateProfilePictureRequest(BaseModel):
 
 
 @router.get("/{user_id}")
-async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
-    """Get user profile by ID"""
-    user = db.query(User).filter(User.id == user_id).first()
+async def get_user_profile(
+    user_id: int,
+    current_user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get user profile by ID.
+    Public endpoint - returns limited profile info.
+    Authenticated users can see more details.
+    """
+    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
     
+    # If viewing own profile or authenticated, return full details
+    if current_user and (current_user.id == user_id or current_user.is_admin):
+        return {
+            "id": user.id,
+            "first_name": user.first_name,
+            "profile_picture_url": user.profile_picture_url,
+            "tribe_id": user.tribe_id,
+            "country": user.country,
+            "state": user.state,
+            "city": user.city if user.state_visibility_enabled else None,
+        }
+    
+    # Public profile - limited info
     return {
         "id": user.id,
         "first_name": user.first_name,
         "profile_picture_url": user.profile_picture_url,
         "tribe_id": user.tribe_id,
         "country": user.country,
-        "state": user.state,
-        "city": user.city,
+        "state": user.state if user.state_visibility_enabled else None,
+        "city": None,  # City only visible to authenticated users
     }
 
 
@@ -45,9 +67,17 @@ async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
 async def update_user_profile(
     user_id: int,
     request: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update user profile"""
+    """Update user profile - requires authentication and ownership"""
+    # Users can only update their own profile (unless admin)
+    if current_user.id != user_id and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own profile"
+        )
+    
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
@@ -55,10 +85,23 @@ async def update_user_profile(
             detail="User not found"
         )
     
+    # Validate input
     if request.first_name is not None:
-        user.first_name = request.first_name
+        if len(request.first_name.strip()) < 1 or len(request.first_name) > 100:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="First name must be between 1 and 100 characters"
+            )
+        user.first_name = request.first_name.strip()
+    
     if request.city is not None:
-        user.city = request.city
+        if len(request.city) > 100:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="City name too long"
+            )
+        user.city = request.city.strip() if request.city else None
+    
     if request.state_visibility_enabled is not None:
         user.state_visibility_enabled = request.state_visibility_enabled
     
@@ -73,14 +116,29 @@ async def update_user_profile(
 async def update_profile_picture(
     user_id: int,
     request: UpdateProfilePictureRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update profile picture"""
+    """Update profile picture - requires authentication and ownership"""
+    # Users can only update their own profile picture (unless admin)
+    if current_user.id != user_id and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own profile picture"
+        )
+    
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
+        )
+    
+    # Validate URL
+    if not request.profile_picture_url.startswith(('http://', 'https://', '/')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid profile picture URL"
         )
     
     # Update profile picture

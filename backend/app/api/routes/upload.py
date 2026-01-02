@@ -1,9 +1,12 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Depends
 from pathlib import Path
 import shutil
 import uuid
 from datetime import datetime
 import os
+
+from app.core.auth import get_current_user
+from app.models import User, BirthdayWall
 
 router = APIRouter()
 
@@ -17,10 +20,11 @@ BIRTHDAY_WALLS_DIR.mkdir(parents=True, exist_ok=True)
 @router.post("/profile-picture")
 async def upload_profile_picture(
     file: UploadFile = File(...),
-    user_id: str = Form(...)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Upload profile picture to local storage.
+    Requires authentication - users can only upload their own profile picture.
     For production, this should be moved to a proper storage service.
     """
     # Validate file type
@@ -39,9 +43,9 @@ async def upload_profile_picture(
             detail="File too large. Maximum size is 5MB."
         )
     
-    # Generate unique filename
+    # Generate unique filename using authenticated user's ID
     file_extension = Path(file.filename).suffix
-    unique_filename = f"{user_id}_{uuid.uuid4().hex}{file_extension}"
+    unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
     file_path = PROFILE_PICTURES_DIR / unique_filename
     
     # Save file
@@ -63,12 +67,35 @@ async def upload_profile_picture(
 async def upload_birthday_wall_photo(
     file: UploadFile = File(...),
     wall_id: int = Form(...),
-    user_id: int = Form(...)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """
     Upload photo to birthday wall.
+    Requires authentication and verifies wall ownership/access.
     For production, this should be moved to a proper storage service.
     """
+    from sqlalchemy.orm import Session
+    from app.core.database import get_db
+    
+    db = next(get_db())
+    
+    # Verify wall exists and user has access
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=404,
+            detail="Birthday wall not found"
+        )
+    
+    # Check if wall is open (users can only upload when wall is active)
+    from datetime import datetime
+    now = datetime.utcnow()
+    if now < wall.opens_at or now > wall.closes_at:
+        raise HTTPException(
+            status_code=403,
+            detail="Birthday wall is not open for uploads"
+        )
     # Validate file type
     allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp", "image/gif"]
     if file.content_type not in allowed_types:
@@ -89,9 +116,9 @@ async def upload_birthday_wall_photo(
     wall_dir = BIRTHDAY_WALLS_DIR / str(wall_id)
     wall_dir.mkdir(parents=True, exist_ok=True)
     
-    # Generate unique filename
+    # Generate unique filename using authenticated user's ID
     file_extension = Path(file.filename).suffix
-    unique_filename = f"{user_id}_{uuid.uuid4().hex}{file_extension}"
+    unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
     file_path = wall_dir / unique_filename
     
     # Save file
@@ -112,9 +139,19 @@ async def upload_birthday_wall_photo(
 
 
 @router.delete("/profile-picture/{filename}")
-async def delete_profile_picture(filename: str):
-    """Delete a profile picture"""
-    file_path = UPLOAD_DIR / filename
+async def delete_profile_picture(
+    filename: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a profile picture - requires authentication and ownership"""
+    # Verify filename belongs to current user
+    if not filename.startswith(f"{current_user.id}_"):
+        raise HTTPException(
+            status_code=403,
+            detail="You can only delete your own profile pictures"
+        )
+    
+    file_path = PROFILE_PICTURES_DIR / filename
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
