@@ -5,12 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { roomAPI, uploadAPI } from '@/lib/api';
-import { ArrowLeft, Upload, Heart, Smile, ThumbsUp, Share2, Eye } from 'lucide-react';
+import { ArrowLeft, Upload, Heart, Smile, ThumbsUp, Share2, Eye, Flag, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import BirthdayWallBackground from '@/components/BirthdayWallBackground';
+import { ReportContentModal } from '@/components/ReportContentModal';
 
 interface Photo {
   id: number;
@@ -54,6 +55,7 @@ export default function BirthdayWallPage() {
   const [reacting, setReacting] = useState<number | null>(null); // Track which photo is being reacted to
   const [selectedFrame, setSelectedFrame] = useState<string>('none');
   const [showFramePicker, setShowFramePicker] = useState(false);
+  const [reportingPhotoId, setReportingPhotoId] = useState<number | null>(null);
 
   const wallCode = params.wallCode as string;
 
@@ -515,14 +517,14 @@ export default function BirthdayWallPage() {
                       <div className="flex gap-2 items-center">
                         <button 
                           onClick={() => handleReaction(photo.id, "❤️")}
-                          disabled={reacting === photo.id || !user}
+                          disabled={reacting === photo.id || !user || wall.is_archived}
                           className={`flex items-center gap-1 transition-colors ${
                             photo.user_reacted?.includes("❤️")
                               ? 'text-red-500' 
                               : (photo.reactions?.["❤️"] ?? 0) > 0
                               ? 'text-red-400'
                               : 'text-gray-400 hover:text-red-500'
-                          } ${reacting === photo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          } ${reacting === photo.id || wall.is_archived ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <Heart className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("❤️") ? 'currentColor' : 'none'} />
                           {(photo.reactions?.["❤️"] ?? 0) > 0 && (
@@ -531,14 +533,14 @@ export default function BirthdayWallPage() {
                         </button>
                         <button 
                           onClick={() => handleReaction(photo.id, "👍")}
-                          disabled={reacting === photo.id || !user}
+                          disabled={reacting === photo.id || !user || wall.is_archived}
                           className={`flex items-center gap-1 transition-colors ${
                             photo.user_reacted?.includes("👍")
                               ? 'text-blue-500' 
                               : (photo.reactions?.["👍"] ?? 0) > 0
                               ? 'text-blue-400'
                               : 'text-gray-400 hover:text-blue-500'
-                          } ${reacting === photo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          } ${reacting === photo.id || wall.is_archived ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <ThumbsUp className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("👍") ? 'currentColor' : 'none'} />
                           {(photo.reactions?.["👍"] ?? 0) > 0 && (
@@ -547,20 +549,29 @@ export default function BirthdayWallPage() {
                         </button>
                         <button 
                           onClick={() => handleReaction(photo.id, "😊")}
-                          disabled={reacting === photo.id || !user}
+                          disabled={reacting === photo.id || !user || wall.is_archived}
                           className={`flex items-center gap-1 transition-colors ${
                             photo.user_reacted?.includes("😊")
                               ? 'text-yellow-500' 
                               : (photo.reactions?.["😊"] ?? 0) > 0
                               ? 'text-yellow-400'
                               : 'text-gray-400 hover:text-yellow-500'
-                          } ${reacting === photo.id ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          } ${reacting === photo.id || wall.is_archived ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <Smile className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("😊") ? 'currentColor' : 'none'} />
                           {(photo.reactions?.["😊"] ?? 0) > 0 && (
                             <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions?.["😊"] ?? 0}</span>
                           )}
                         </button>
+                        {user && (
+                          <button
+                            onClick={() => setReportingPhotoId(photo.id)}
+                            className="text-gray-400 hover:text-orange-600 transition-colors cursor-pointer p-1"
+                            title="Report photo"
+                          >
+                            <Flag className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -572,6 +583,17 @@ export default function BirthdayWallPage() {
 
         {/* Mobile Bottom Navigation */}
         <MobileBottomNav show={isMobile && !!user} />
+
+        {/* Report Content Modal */}
+        {reportingPhotoId !== null && (
+          <ReportContentModal
+            isOpen={reportingPhotoId !== null}
+            onClose={() => setReportingPhotoId(null)}
+            contentType="photo"
+            contentId={reportingPhotoId}
+            contentPreview={wall.photos.find(p => p.id === reportingPhotoId)?.caption || 'Photo on Birthday Wall'}
+          />
+        )}
       </div>
     </AuthProvider>
   );

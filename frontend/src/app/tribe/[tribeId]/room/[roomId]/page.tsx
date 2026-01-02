@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { tribeAPI } from '@/lib/api';
 import { AuthProvider } from '@/components/auth/AuthProvider';
-import { Send, ArrowLeft, Users, Clock, Edit2, Trash2, X, Check } from 'lucide-react';
+import { Send, ArrowLeft, Users, Clock, Edit2, Trash2, X, Check, Flag } from 'lucide-react';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import toast from 'react-hot-toast';
 import { formatDateTime, timeAgo } from '@/utils/dates';
@@ -15,6 +15,7 @@ import { FeaturedMessage, DigitalGiftEffects } from '@/components/DigitalGiftEff
 import { giftAPI } from '@/lib/api';
 import { TribeRoomBackground } from '@/components/TribeRoomBackground';
 import { motion } from 'framer-motion';
+import { ReportContentModal } from '@/components/ReportContentModal';
 
 interface Message {
   id: number;
@@ -37,6 +38,7 @@ export default function TribeRoomPage() {
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
   const [deletingMessageId, setDeletingMessageId] = useState<number | null>(null);
+  const [reportingMessageId, setReportingMessageId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const tribeId = params.tribeId as string;
@@ -339,28 +341,42 @@ export default function TribeRoomPage() {
                           : 'glass-effect border-2 border-white/40 backdrop-blur-xl bg-white/80'
                       }`}
                     >
-                      {/* Edit/Delete Buttons (only for own messages) */}
-                      {isOwn && !isEditing && (
+                      {/* Action Buttons */}
+                      {!isEditing && (
                         <div className="absolute -top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleStartEdit(message)}
-                            className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-lg backdrop-blur-sm text-primary-600"
-                            title="Edit message"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleDelete(message.id)}
-                            disabled={isDeleting}
-                            className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-lg backdrop-blur-sm text-red-600 disabled:opacity-50"
-                            title="Delete message"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </motion.button>
+                          {isOwn ? (
+                            <>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleStartEdit(message)}
+                                className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-lg backdrop-blur-sm text-primary-600"
+                                title="Edit message"
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleDelete(message.id)}
+                                disabled={isDeleting}
+                                className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-lg backdrop-blur-sm text-red-600 disabled:opacity-50"
+                                title="Delete message"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </motion.button>
+                            </>
+                          ) : (
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => setReportingMessageId(message.id)}
+                              className="p-1.5 bg-white/90 hover:bg-white rounded-lg shadow-lg backdrop-blur-sm text-orange-600"
+                              title="Report message"
+                            >
+                              <Flag className="w-3 h-3" />
+                            </motion.button>
+                          )}
                         </div>
                       )}
 
@@ -465,6 +481,17 @@ export default function TribeRoomPage() {
 
         {/* Mobile Bottom Navigation */}
         <MobileBottomNav show={isMobile && !!user} />
+
+        {/* Report Content Modal */}
+        {reportingMessageId !== null && (
+          <ReportContentModal
+            isOpen={reportingMessageId !== null}
+            onClose={() => setReportingMessageId(null)}
+            contentType="message"
+            contentId={reportingMessageId}
+            contentPreview={messages.find(m => m.id === reportingMessageId)?.content}
+          />
+        )}
       </div>
     </AuthProvider>
   );
