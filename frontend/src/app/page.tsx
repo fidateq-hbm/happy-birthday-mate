@@ -425,7 +425,7 @@ export default function HomePage() {
           <div className="text-center text-gray-600 border-t border-gray-200 pt-8">
             <p>&copy; 2025 Happy Birthday Mate. All rights reserved.</p>
             <p className="mt-2 text-sm">
-              A platform where birthdays become rituals, not just dates. 🎉
+              A platform where birthdays become moments, not just dates. 🎉
             </p>
           </div>
         </div>

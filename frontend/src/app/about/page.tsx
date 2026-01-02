@@ -23,8 +23,8 @@ const VALUES = [
   },
   {
     icon: Sparkles,
-    title: 'Ritual-Based Celebration',
-    description: 'Transform birthdays from simple dates into meaningful rituals that bring people together.',
+    title: 'Moment-Based Celebration',
+    description: 'Transform birthdays from simple dates into meaningful moments that bring people together.',
     color: 'from-purple-500 to-pink-500',
   },
   {
@@ -81,7 +81,7 @@ export default function AboutPage() {
             About Happy Birthday Mate 🎉
           </h1>
           <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-            A global, ritual-based digital celebration platform where no one celebrates alone.
+            A global celebration platform where no one celebrates alone.
             We believe every birthday deserves to be shared with a community of people who understand the magic of your special day.
           </p>
         </motion.div>
@@ -97,7 +97,7 @@ export default function AboutPage() {
             Our Mission
           </h2>
           <p className="text-gray-700 text-lg md:text-xl leading-relaxed text-center max-w-4xl mx-auto">
-            To transform birthdays from simple calendar dates into meaningful rituals that connect people across the globe.
+            To transform birthdays from simple calendar dates into meaningful moments that connect people across the globe.
             We're building a platform where every person can find their birthday tribe—a community of people who share their exact birthday,
             creating bonds that transcend borders, cultures, and backgrounds.
           </p>
@@ -154,7 +154,7 @@ export default function AboutPage() {
               whether you prefer quiet celebrations or grand parties. Here, you're part of a tribe that understands the significance of your special day.
             </p>
             <p>
-              Through Birthday Walls, Tribe Rooms, digital gifts, and meaningful connections, we're creating a space where every birthday becomes a ritual worth celebrating,
+              Through Birthday Walls, Tribe Rooms, digital gifts, and meaningful connections, we're creating a space where every birthday becomes a moment worth celebrating,
               and every celebrant finds their community.
             </p>
           </div>

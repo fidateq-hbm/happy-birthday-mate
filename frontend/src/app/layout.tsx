@@ -6,7 +6,7 @@ import ToasterProvider from "@/components/ToasterProvider";
 
 export const metadata: Metadata = {
   title: "Happy Birthday Mate - Celebrate Together",
-  description: "A global, ritual-based digital celebration platform where no one celebrates alone",
+  description: "A global celebration platform where no one celebrates alone",
   manifest: '/manifest.json',
   themeColor: '#667eea',
   icons: {
