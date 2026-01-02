@@ -791,32 +791,18 @@ export default function GiftsPage() {
                   )}
                 </div>
 
-                {/* Payment Provider */}
+                {/* Payment Provider - Flutterwave Only */}
                 <div>
                   <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
                     <CreditCard className="w-4 h-4" />
                     Payment Method
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { id: 'flutterwave', name: 'Flutterwave', icon: '💳' },
-                      { id: 'stripe', name: 'Stripe', icon: '💳' },
-                      { id: 'paypal', name: 'PayPal', icon: '💳' },
-                      { id: 'paystack', name: 'Paystack', icon: '💳' }
-                    ].map((provider) => (
-                      <button
-                        key={provider.id}
-                        onClick={() => setPaymentProvider(provider.id as any)}
-                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
-                          paymentProvider === provider.id
-                            ? 'border-primary-500 bg-primary-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <span className="text-2xl">{provider.icon}</span>
-                        <span className="text-sm font-semibold">{provider.name}</span>
-                      </button>
-                    ))}
+                  <div className="p-4 rounded-xl border-2 border-primary-500 bg-primary-50 flex items-center gap-3">
+                    <span className="text-2xl">💳</span>
+                    <div>
+                      <span className="text-sm font-semibold block">Flutterwave</span>
+                      <span className="text-xs text-gray-600">Secure payment processing</span>
+                    </div>
                   </div>
                 </div>
 
