@@ -50,7 +50,7 @@ postgresql://postgres:your_password_here@db.abcdefghijklmnop.supabase.co:5432/po
 | `ALGORITHM` | `HS256` | JWT algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Token expiration time |
 | `FIREBASE_CREDENTIALS` | `{paste entire JSON content here}` | From Step 2.1 (see note below) |
-| `GEMINI_API_KEY` | `AIzaSyBBPeQQj4uZcUWfWYDwwntmkBBtbLn4wQs` | Your Gemini API key |
+| `GEMINI_API_KEY` | `your-gemini-api-key-here` | Your Gemini API key (get from Google AI Studio) |
 | `ALLOWED_ORIGINS` | `https://happy-birthday-mate.onrender.com,http://localhost:3000` | Add your frontend URL when deployed |
 
 ### Important Notes:
