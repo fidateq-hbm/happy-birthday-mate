@@ -93,8 +93,9 @@ export default function SignupPage() {
       const result = await signInWithPopup(auth, googleProvider);
       
       // Check if user already exists
+      // Note: getMe() uses Authorization header from Firebase token automatically
       try {
-        await authAPI.getMe(result.user.uid);
+        await authAPI.getMe();
         toast.success('Welcome back! 🎉');
         router.push('/dashboard');
       } catch {
