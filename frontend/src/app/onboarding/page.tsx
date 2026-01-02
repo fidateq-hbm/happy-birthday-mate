@@ -112,32 +112,37 @@ export default function OnboardingPage() {
         consent_given: consentGiven,
       });
 
-      // After signup succeeds, upload profile picture to backend if one was selected
-      if (profilePicture && response.data?.id) {
-        try {
-          const formData = new FormData();
-          formData.append('file', profilePicture);
-          
-          const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/upload/profile-picture`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${await firebaseUser.getIdToken()}`,
-            },
-            body: formData,
-          });
-
-          if (uploadResponse.ok) {
-            const uploadData = await uploadResponse.json();
-            const fullUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${uploadData.url}`;
-            
-            // Update user's profile picture URL
-            await userAPI.updateProfilePicture(response.data.id, fullUrl);
-          }
-        } catch (uploadError) {
-          console.warn('Profile picture upload failed, but signup succeeded:', uploadError);
-          // Don't block onboarding if upload fails - user can upload later in settings
-        }
+      // After signup succeeds, upload profile picture to backend (required)
+      if (!profilePicture) {
+        throw new Error('Profile picture is required');
       }
+
+      if (!response.data?.id) {
+        throw new Error('Signup succeeded but user ID not returned');
+      }
+
+      // Upload profile picture to backend
+      const formData = new FormData();
+      formData.append('file', profilePicture);
+      
+      const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/upload/profile-picture`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${await firebaseUser.getIdToken()}`,
+        },
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({ detail: 'Upload failed' }));
+        throw new Error(errorData.detail || 'Failed to upload profile picture');
+      }
+
+      const uploadData = await uploadResponse.json();
+      const fullUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${uploadData.url}`;
+      
+      // Update user's profile picture URL
+      await userAPI.updateProfilePicture(response.data.id, fullUrl);
 
       toast.success('Welcome to Happy Birthday Mate! 🎉');
       router.push('/dashboard');
@@ -149,7 +154,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const canProceedStep1 = firstName && dateOfBirth && gender; // Profile picture is optional
+  const canProceedStep1 = firstName && dateOfBirth && gender && profilePicture; // Profile picture is now required
   const canProceedStep2 = country && state;
   const canSubmit = canProceedStep1 && canProceedStep2 && consentGiven;
 
@@ -202,13 +207,10 @@ export default function OnboardingPage() {
                 {/* Profile Picture */}
                 <div className="flex flex-col items-center">
                   <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
-                    Profile Picture (Optional)
+                    Profile Picture *
                   </label>
-                  <p className="text-xs text-gray-500 mb-2 text-center">
+                  <p className="text-xs text-gray-500 mb-4 text-center">
                     Your photo helps your birthday mates recognize and connect with you
-                  </p>
-                  <p className="text-xs text-amber-600 font-medium mb-4 text-center bg-amber-50 px-3 py-2 rounded-lg">
-                    ⚠️ If you skip this, you must upload a profile picture in Settings after signup for full functionality
                   </p>
                   <div className="relative">
                     {profilePicturePreview ? (
@@ -229,13 +231,12 @@ export default function OnboardingPage() {
                         accept="image/*"
                         onChange={handleProfilePictureChange}
                         className="hidden"
+                        required
                       />
                     </label>
                   </div>
                   {!profilePicture && (
-                    <p className="text-xs text-amber-600 font-medium mt-2 text-center">
-                      ⚠️ Important: You must upload a profile picture in Settings after completing signup for your photo to be displayed to other users
-                    </p>
+                    <p className="text-xs text-red-500 mt-2 text-center">Profile picture is required</p>
                   )}
                 </div>
 
