@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OG Image Template</title>
+    <title>OG Image Template - Happy Birthday Mate</title>
     <style>
         * {
             margin: 0;
@@ -11,87 +11,110 @@
             box-sizing: border-box;
         }
         
-        body {
+        html, body {
             width: 1200px;
             height: 630px;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             color: white;
             position: relative;
-            overflow: hidden;
         }
         
-        /* Decorative elements */
+        /* Decorative confetti elements */
         .confetti {
             position: absolute;
-            width: 10px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.8);
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 50%;
-            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
+        .confetti:nth-child(1) { left: 8%; top: 15%; }
+        .confetti:nth-child(2) { left: 18%; top: 55%; }
+        .confetti:nth-child(3) { left: 82%; top: 25%; }
+        .confetti:nth-child(4) { left: 92%; top: 65%; }
+        .confetti:nth-child(5) { left: 45%; top: 10%; }
+        .confetti:nth-child(6) { left: 55%; top: 85%; }
         
-        .confetti:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
-        .confetti:nth-child(2) { left: 20%; top: 60%; animation-delay: 0.5s; }
-        .confetti:nth-child(3) { left: 80%; top: 30%; animation-delay: 1s; }
-        .confetti:nth-child(4) { left: 90%; top: 70%; animation-delay: 1.5s; }
-        
-        /* Main content */
+        /* Main content container */
         .container {
             text-align: center;
-            z-index: 1;
-            padding: 40px;
+            z-index: 10;
+            padding: 60px 40px;
+            max-width: 1000px;
         }
         
-        .logo {
-            font-size: 72px;
-            font-weight: 900;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: -2px;
-        }
-        
+        /* Birthday cake emoji */
         .emoji {
-            font-size: 80px;
+            font-size: 100px;
             margin-bottom: 30px;
             display: block;
+            line-height: 1;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
         }
         
+        /* Main logo/title */
+        .logo {
+            font-size: 76px;
+            font-weight: 900;
+            margin-bottom: 24px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+        
+        /* Tagline */
         .tagline {
-            font-size: 36px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
         }
         
+        /* Subtitle */
         .subtitle {
-            font-size: 24px;
+            font-size: 28px;
             opacity: 0.95;
             font-weight: 400;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            line-height: 1.3;
         }
         
+        /* Website URL at bottom */
         .url {
             position: absolute;
-            bottom: 30px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 20px;
+            font-size: 22px;
             opacity: 0.9;
             font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+        
+        /* Ensure everything is visible */
+        .container > * {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <!-- Decorative confetti -->
+    <!-- Decorative confetti dots -->
+    <div class="confetti"></div>
+    <div class="confetti"></div>
     <div class="confetti"></div>
     <div class="confetti"></div>
     <div class="confetti"></div>
@@ -106,6 +129,17 @@
     </div>
     
     <div class="url">www.happybirthdaymate.com</div>
+    
+    <script>
+        // Ensure page is exactly 1200x630
+        document.body.style.width = '1200px';
+        document.body.style.height = '630px';
+        document.documentElement.style.width = '1200px';
+        document.documentElement.style.height = '630px';
+        
+        // Prevent any scaling
+        document.body.style.zoom = '1';
+        document.body.style.transform = 'scale(1)';
+    </script>
 </body>
 </html>
-
