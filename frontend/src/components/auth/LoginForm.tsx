@@ -26,16 +26,31 @@ export function LoginForm() {
       // Reload user to get latest email verification status
       await user.reload();
       
-      if (!user.emailVerified) {
-        toast('Please verify your email address to access all features', { 
-          icon: '📧',
-          duration: 5000 
-        });
-      } else {
-        toast.success('Welcome back! 🎉');
+      // Check if user exists in backend (completed onboarding)
+      try {
+        // Note: getMe() uses Authorization header from Firebase token automatically
+        await authAPI.getMe();
+        // User exists in backend - redirect to dashboard
+        if (!user.emailVerified) {
+          toast('Please verify your email address to access all features', { 
+            icon: '📧',
+            duration: 5000 
+          });
+        } else {
+          toast.success('Welcome back! 🎉');
+        }
+        router.push('/dashboard');
+      } catch (backendError: any) {
+        // User doesn't exist in backend - incomplete signup, redirect to onboarding
+        if (!user.emailVerified) {
+          toast('Please verify your email address first', { 
+            icon: '📧',
+            duration: 5000 
+          });
+        }
+        toast.success('Welcome back! Let\'s complete your profile 🎉');
+        router.push('/onboarding');
       }
-      
-      router.push('/dashboard');
     } catch (error: any) {
       // Handle specific Firebase errors with user-friendly messages
       let errorMessage = 'Failed to log in. Please try again.';
