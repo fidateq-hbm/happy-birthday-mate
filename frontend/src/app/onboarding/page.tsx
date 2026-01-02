@@ -201,8 +201,11 @@ export default function OnboardingPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
                     Profile Picture (Optional)
                   </label>
-                  <p className="text-xs text-gray-500 mb-4 text-center">
+                  <p className="text-xs text-gray-500 mb-2 text-center">
                     Your photo helps your birthday mates recognize and connect with you
+                  </p>
+                  <p className="text-xs text-amber-600 font-medium mb-4 text-center bg-amber-50 px-3 py-2 rounded-lg">
+                    ⚠️ If you skip this, you must upload a profile picture in Settings after signup for full functionality
                   </p>
                   <div className="relative">
                     {profilePicturePreview ? (
@@ -227,7 +230,9 @@ export default function OnboardingPage() {
                     </label>
                   </div>
                   {!profilePicture && (
-                    <p className="text-xs text-gray-500 mt-2">You can add a profile picture later in settings</p>
+                    <p className="text-xs text-amber-600 font-medium mt-2 text-center">
+                      ⚠️ Important: You must upload a profile picture in Settings after completing signup for your photo to be displayed to other users
+                    </p>
                   )}
                 </div>
 
