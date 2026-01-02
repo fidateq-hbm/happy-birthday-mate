@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { AuthProvider } from '@/components/auth/AuthProvider';
-import { userAPI } from '@/lib/api';
+import { userAPI, api } from '@/lib/api';
 import { ArrowLeft, Upload, User, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
@@ -54,24 +54,19 @@ export default function SettingsPage() {
     setUploading(true);
 
     try {
-      // Upload to backend
+      // Upload to backend using authenticated API client
       const formData = new FormData();
       formData.append('file', profilePicture);
-      formData.append('user_id', user.firebase_uid);
 
-      const uploadResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/upload/profile-picture`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      // Use the api client which automatically includes Authorization header
+      const uploadResponse = await api.post('/upload/profile-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 60000, // 60 second timeout for file uploads
+      });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload profile picture');
-      }
-
-      const uploadData = await uploadResponse.json();
+      const uploadData = uploadResponse.data;
       const profilePictureUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${uploadData.url}`;
 
       // Update user profile
