@@ -59,10 +59,8 @@ export default function SettingsPage() {
       formData.append('file', profilePicture);
 
       // Use the api client which automatically includes Authorization header
+      // Note: Don't set Content-Type manually - axios will set it with boundary for FormData
       const uploadResponse = await api.post('/upload/profile-picture', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
         timeout: 60000, // 60 second timeout for file uploads
       });
 
