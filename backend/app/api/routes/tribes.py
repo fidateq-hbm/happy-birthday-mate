@@ -306,14 +306,16 @@ async def edit_tribe_message(
 
 
 @router.delete("/{tribe_id}/room/{room_id}/messages/{message_id}")
+@limiter.limit("30/minute")  # Rate limit deletes
 async def delete_tribe_message(
+    request: Request,
     tribe_id: str,
     room_id: int,
     message_id: int,
-    user_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Delete a message in the tribe room (only by the sender)"""
+    """Delete a message in the tribe room (only by the sender) - requires authentication"""
     
     # Get the message
     message = db.query(Message).filter(Message.id == message_id).first()
@@ -331,7 +333,7 @@ async def delete_tribe_message(
         )
     
     # Verify user is the sender
-    if message.user_id != user_id:
+    if message.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own messages"
