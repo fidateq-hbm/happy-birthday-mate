@@ -18,6 +18,7 @@ class PaymentProviderEnum(str, enum.Enum):
     STRIPE = "stripe"
     PAYPAL = "paypal"
     PAYSTACK = "paystack"
+    FLUTTERWAVE = "flutterwave"
 
 
 class Gift(Base):

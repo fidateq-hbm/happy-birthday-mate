@@ -110,8 +110,7 @@ export const roomAPI = {
 // Gift endpoints
 export const giftAPI = {
   getCatalog: () => api.get('/gifts/catalog'),
-  sendGift: (senderId: number, data: any) =>
-    api.post('/gifts/send', { ...data, sender_id: senderId }),
+  sendGift: (data: any) => api.post('/gifts/send', data), // sender_id from token
   getReceivedGifts: (userId: number) =>
     api.get(`/gifts/received`, { params: { user_id: userId } }),
   getSentGifts: (userId: number) =>
@@ -120,6 +119,8 @@ export const giftAPI = {
     api.post(`/gifts/activate/${giftId}`),
   getActiveGifts: (userId: number) =>
     api.get(`/gifts/active/${userId}`),
+  verifyPayment: (giftId: number) =>
+    api.get(`/payments/verify/${giftId}`),
 };
 
 // Note: All admin endpoints now use Authorization header (Bearer token) from the interceptor

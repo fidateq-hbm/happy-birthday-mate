@@ -9,7 +9,7 @@ import logging
 
 from app.core.config import settings
 from app.core.security import limiter, RateLimitExceeded, _rate_limit_exceeded_handler
-from app.api.routes import auth, users, tribes, rooms, gifts, admin, upload, buddy, ai
+from app.api.routes import auth, users, tribes, rooms, gifts, admin, upload, buddy, ai, payments
 
 load_dotenv()
 
@@ -193,6 +193,7 @@ app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(upload.router, prefix="/api/upload", tags=["File Upload"])
 app.include_router(buddy.router, prefix="/api/buddy", tags=["Birthday Buddy"])
 app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
+app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
 
 
 @app.get("/")

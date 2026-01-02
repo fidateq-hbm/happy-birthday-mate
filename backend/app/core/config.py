@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     PAYPAL_CLIENT_ID: str = ""
     PAYPAL_CLIENT_SECRET: str = ""
     PAYSTACK_SECRET_KEY: str = ""
+    FLUTTERWAVE_PUBLIC_KEY: str = ""
+    FLUTTERWAVE_SECRET_KEY: str = ""
+    FLUTTERWAVE_ENCRYPTION_KEY: str = ""
+    FLUTTERWAVE_WEBHOOK_HASH: str = ""
     
     # AI (Google Gemini)
     GEMINI_API_KEY: str = ""

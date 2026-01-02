@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from decimal import Decimal
 
 from app.core.database import get_db
+from app.core.auth import get_current_user
+from app.core.config import settings
 from app.models import Gift, GiftCatalog, GiftTypeEnum, PaymentProviderEnum, User
+from app.services.flutterwave_service import FlutterwaveService
 
 router = APIRouter()
 
@@ -44,22 +47,17 @@ async def get_gift_catalog(db: Session = Depends(get_db)):
 
 @router.post("/send")
 async def send_gift(
-    request: SendGiftRequest,
-    sender_id: int,
+    gift_request: SendGiftRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Send a digital gift to a celebrant"""
+    """Send a digital gift to a celebrant - requires authentication"""
     
-    # Verify sender
-    sender = db.query(User).filter(User.id == sender_id).first()
-    if not sender:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Sender not found"
-        )
+    sender = current_user
+    sender_id = current_user.id
     
     # Verify recipient
-    recipient = db.query(User).filter(User.id == request.recipient_id).first()
+    recipient = db.query(User).filter(User.id == gift_request.recipient_id).first()
     if not recipient:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -68,7 +66,7 @@ async def send_gift(
     
     # Get gift from catalog
     catalog_item = db.query(GiftCatalog).filter(
-        GiftCatalog.id == request.gift_catalog_id
+        GiftCatalog.id == gift_request.gift_catalog_id
     ).first()
     
     if not catalog_item:
@@ -77,18 +75,22 @@ async def send_gift(
             detail="Gift not found in catalog"
         )
     
-    # Create gift transaction (payment would be processed here)
+    # Generate transaction reference
+    tx_ref = FlutterwaveService.generate_tx_ref(0)  # Will update after gift creation
+    
+    # Create gift transaction
     gift = Gift(
         sender_id=sender_id,
-        recipient_id=request.recipient_id,
+        recipient_id=gift_request.recipient_id,
         gift_type=catalog_item.gift_type,
         gift_name=catalog_item.name,
         gift_description=catalog_item.description,
         amount=catalog_item.price,
         currency=catalog_item.currency,
-        payment_provider=request.payment_provider,
-        message=request.message,
-        payment_status="pending"
+        payment_provider=gift_request.payment_provider,
+        message=gift_request.message,
+        payment_status="pending",
+        payment_intent_id=tx_ref  # Store tx_ref as payment_intent_id
     )
     
     # If this is a gift card, extract provider name from gift name
@@ -130,14 +132,58 @@ async def send_gift(
     db.commit()
     db.refresh(gift)
     
-    # Note: Gift activation happens after payment is confirmed
-    # For digital gifts (our own), they activate immediately after payment
-    # For gift cards (third-party), they require API integration
+    # Update tx_ref with actual gift ID
+    tx_ref = FlutterwaveService.generate_tx_ref(gift.id)
+    gift.payment_intent_id = tx_ref
+    db.commit()
+    
+    # Initialize payment if Flutterwave is selected
+    payment_data = None
+    if gift_request.payment_provider == PaymentProviderEnum.FLUTTERWAVE:
+        if not settings.FLUTTERWAVE_SECRET_KEY:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Flutterwave is not configured"
+            )
+        
+        # Get redirect URL (frontend will handle payment completion)
+        api_url = os.getenv("API_URL", os.getenv("NEXT_PUBLIC_API_URL", "http://localhost:8000"))
+        frontend_url = os.getenv("NEXT_PUBLIC_FRONTEND_URL", "http://localhost:3000")
+        redirect_url = f"{frontend_url}/gifts/payment/callback?gift_id={gift.id}"
+        
+        try:
+            payment_response = await FlutterwaveService.initialize_payment(
+                amount=catalog_item.price,
+                currency=catalog_item.currency or "USD",
+                email=sender.email,
+                tx_ref=tx_ref,
+                customer_name=sender.first_name,
+                redirect_url=redirect_url,
+                meta_data={
+                    "gift_id": gift.id,
+                    "sender_id": sender_id,
+                    "recipient_id": gift_request.recipient_id
+                }
+            )
+            
+            payment_data = {
+                "payment_url": payment_response.get("data", {}).get("link"),
+                "tx_ref": tx_ref
+            }
+        except Exception as e:
+            # If payment initialization fails, still return gift but mark as failed
+            gift.payment_status = "failed"
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to initialize payment: {str(e)}"
+            )
     
     return {
         "gift_id": gift.id,
         "status": "pending",
-        "message": "Gift created. Complete payment to deliver."
+        "message": "Gift created. Complete payment to deliver.",
+        "payment_data": payment_data
     }
 
 

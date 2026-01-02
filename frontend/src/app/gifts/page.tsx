@@ -37,7 +37,7 @@ export default function GiftsPage() {
   const [sendGiftModal, setSendGiftModal] = useState<GiftItem | null>(null);
   const [tribeMembers, setTribeMembers] = useState<any[]>([]);
   const [selectedRecipient, setSelectedRecipient] = useState<number | null>(null);
-  const [paymentProvider, setPaymentProvider] = useState<'stripe' | 'paypal' | 'paystack'>('stripe');
+  const [paymentProvider, setPaymentProvider] = useState<'stripe' | 'paypal' | 'paystack' | 'flutterwave'>('flutterwave');
   const [giftMessage, setGiftMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -220,7 +220,7 @@ export default function GiftsPage() {
     setIsSending(true);
     try {
       // Step 1: Create gift transaction
-      const giftResponse = await giftAPI.sendGift(user.id, {
+      const giftResponse = await giftAPI.sendGift({
         recipient_id: selectedRecipient,
         gift_catalog_id: sendGiftModal.id,
         payment_provider: paymentProvider,
@@ -228,41 +228,36 @@ export default function GiftsPage() {
       });
 
       const giftId = giftResponse.data.gift_id;
+      const paymentData = giftResponse.data.payment_data;
 
-      // Step 2: Simulate payment processing (PLACEHOLDER - replace with real payment integration)
-      toast.loading('Processing payment...', { id: 'payment' });
-      
-      // Simulate payment delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate payment success (PLACEHOLDER)
-      // TODO: Replace this with actual payment provider integration:
-      // - Stripe: Create payment intent, redirect to checkout, handle webhook
-      // - PayPal: Create order, redirect to PayPal, handle webhook
-      // - Paystack: Initialize transaction, redirect to Paystack, handle webhook
-      
-      // For now, we'll simulate successful payment and activate the gift
-      toast.success('Payment successful!', { id: 'payment' });
-      
-      // Step 3: Update payment status (in real implementation, this happens via webhook)
-      // For placeholder, we'll mark as completed and activate
-      try {
-        // Update gift payment status to completed (placeholder - webhook would do this)
-        // In production, the payment webhook would call /api/gifts/activate/{gift_id}
-        await giftAPI.activateGift(giftId);
-      } catch (activateError: any) {
-        console.error('Error activating gift:', activateError);
-        // Gift is created but not activated - user can retry or admin can fix
-        toast.error('Gift created but activation failed. Please contact support.', { duration: 5000 });
+      // Step 2: Handle payment based on provider
+      if (paymentProvider === 'flutterwave' && paymentData?.payment_url) {
+        // Redirect to Flutterwave payment page
+        toast.loading('Redirecting to payment...', { id: 'payment' });
+        window.location.href = paymentData.payment_url;
+        return; // Don't close modal yet, user will be redirected
+      } else {
+        // For other providers or if no payment URL, handle as before
+        toast.loading('Processing payment...', { id: 'payment' });
+        
+        // Simulate payment delay for other providers
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        toast.success('Payment successful!', { id: 'payment' });
+        
+        try {
+          await giftAPI.activateGift(giftId);
+        } catch (activateError: any) {
+          console.error('Error activating gift:', activateError);
+          toast.error('Gift created but activation failed. Please contact support.', { duration: 5000 });
+        }
+
+        toast.success('Gift sent successfully! 🎉');
+        setSendGiftModal(null);
+        setSelectedRecipient(null);
+        setGiftMessage('');
+        fetchGiftData();
       }
-
-      toast.success('Gift sent successfully! 🎉');
-      setSendGiftModal(null);
-      setSelectedRecipient(null);
-      setGiftMessage('');
-      
-      // Refresh gift data
-      fetchGiftData();
     } catch (error: any) {
       console.error('Error sending gift:', error);
       toast.error(error.response?.data?.detail || 'Failed to send gift. Please try again.');
