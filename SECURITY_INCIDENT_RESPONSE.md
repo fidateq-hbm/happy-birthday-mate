@@ -112,16 +112,63 @@ The Google Gemini API key was accidentally committed to the repository in:
 
 ---
 
+## SECRET_KEY Rotation (JWT Token Signing)
+
+### ⚠️ Important Notes:
+- **Changing SECRET_KEY will invalidate all existing JWT tokens**
+- **All users will need to log in again** (this is expected and secure)
+- **The site will continue working** - users just need to re-authenticate
+
+### Steps to Rotate SECRET_KEY:
+
+1. **Generated New Secure Key:**
+   ```
+   u6ziwst2a5k_ByvQ3TZwuioxHbKJrZzvMkmGexHrHUA
+   ```
+   
+   (Generated using: `python -c "import secrets; print(secrets.token_urlsafe(32))"`)
+
+2. **Update Render Environment Variable:**
+   - Go to Render Dashboard → Your service → **Environment**
+   - Find `SECRET_KEY`
+   - Update it with: `u6ziwst2a5k_ByvQ3TZwuioxHbKJrZzvMkmGexHrHUA`
+   - Click **Save** (service will restart)
+
+3. **What Happens:**
+   - ✅ Site continues working normally
+   - ✅ New logins will work with new key
+   - ⚠️ Existing user sessions will expire (they'll need to log in again)
+   - ✅ This is **secure** - old tokens become invalid
+
+4. **Test:**
+   - Try logging in with a test account
+   - Verify JWT tokens are generated correctly
+   - Check Render logs for any errors
+
+### Files Updated:
+- ✅ `RENDER_ENV_SETUP.md` - Removed hardcoded key
+- ✅ `backend/env.template` - Removed hardcoded key
+- ✅ `ENV_SETUP.md` - Removed hardcoded key
+
+---
+
 ## Checklist
 
-- [ ] **URGENT:** Revoke old key in Google AI Studio
-- [ ] **URGENT:** Generate new API key
-- [ ] **URGENT:** Update Render environment variable
-- [ ] **URGENT:** Update Vercel environment variable (if applicable)
-- [ ] Test AI message generation with new key
+### Google API Key:
+- [x] **DONE:** Removed from code
+- [x] **DONE:** User rotated the key
+- [x] **DONE:** Updated in Render
+
+### SECRET_KEY:
+- [x] **DONE:** Removed from all documentation files
+- [ ] **TODO:** Update Render environment variable with new key: `u6ziwst2a5k_ByvQ3TZwuioxHbKJrZzvMkmGexHrHUA`
+- [ ] **TODO:** Test login functionality after update
+- [ ] **TODO:** Verify JWT tokens work correctly
+
+### General Security:
 - [ ] Verify no other secrets are exposed
 - [ ] Review git history for other exposed secrets
-- [ ] Consider enabling secret scanning
+- [ ] Consider enabling secret scanning (GitGuardian, GitHub Advanced Security)
 
 ---
 
