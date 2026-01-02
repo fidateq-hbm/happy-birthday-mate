@@ -4,8 +4,10 @@ import shutil
 import uuid
 from datetime import datetime
 import os
+from sqlalchemy.orm import Session
 
 from app.core.auth import get_current_user
+from app.core.database import get_db
 from app.models import User, BirthdayWall
 
 router = APIRouter()
@@ -75,11 +77,6 @@ async def upload_birthday_wall_photo(
     Requires authentication and verifies wall ownership/access.
     For production, this should be moved to a proper storage service.
     """
-    from sqlalchemy.orm import Session
-    from app.core.database import get_db
-    
-    db = next(get_db())
-    
     # Verify wall exists and user has access
     wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
     if not wall:
@@ -89,7 +86,6 @@ async def upload_birthday_wall_photo(
         )
     
     # Check if wall is open (users can only upload when wall is active)
-    from datetime import datetime
     now = datetime.utcnow()
     if now < wall.opens_at or now > wall.closes_at:
         raise HTTPException(
