@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { authAPI } from '@/lib/api';
-import { auth, storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { authAPI, userAPI } from '@/lib/api';
+import { auth } from '@/lib/firebase';
 import toast from 'react-hot-toast';
 import { Upload, User, Calendar, MapPin, Check } from 'lucide-react';
 import { AuthProvider } from '@/components/auth/AuthProvider';
@@ -85,25 +84,9 @@ export default function OnboardingPage() {
     }
   };
 
-  const uploadProfilePicture = async (): Promise<string> => {
-    if (!profilePicture || !firebaseUser) {
-      // Return fallback avatar if no picture selected
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName || 'User')}&background=6366f1&color=fff&size=200&bold=true`;
-    }
-
-    // Upload to Firebase Storage during onboarding (before user exists in backend)
-    // After signup, profile picture updates can use the backend endpoint
-    try {
-      const storageRef = ref(storage, `profile_pictures/${firebaseUser.uid}/${Date.now()}_${profilePicture.name}`);
-      await uploadBytes(storageRef, profilePicture);
-      const downloadURL = await getDownloadURL(storageRef);
-      return downloadURL;
-    } catch (error) {
-      console.error('Upload error:', error);
-      // If upload fails, use fallback avatar instead of blocking onboarding
-      console.warn('Profile picture upload failed, using fallback avatar');
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName || 'User')}&background=6366f1&color=fff&size=200&bold=true`;
-    }
+  // No longer using Firebase Storage - will upload to backend after signup
+  const getFallbackAvatar = (): string => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName || 'User')}&background=6366f1&color=fff&size=200&bold=true`;
   };
 
   const handleSubmit = async () => {
@@ -112,17 +95,10 @@ export default function OnboardingPage() {
     setLoading(true);
 
     try {
-      // Upload profile picture (with fallback if it fails)
-      let profilePictureUrl: string;
-      try {
-        profilePictureUrl = await uploadProfilePicture();
-      } catch (uploadError) {
-        // If upload fails, use fallback avatar
-        console.warn('Profile picture upload failed, using fallback:', uploadError);
-        profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName || 'User')}&background=6366f1&color=fff&size=200&bold=true`;
-      }
+      // Use fallback avatar for signup (we'll upload real picture after signup completes)
+      const fallbackAvatar = getFallbackAvatar();
 
-      // Submit to backend
+      // Submit to backend (signup)
       const response = await authAPI.signup({
         firebase_uid: firebaseUser.uid,
         email: firebaseUser.email!,
@@ -132,9 +108,36 @@ export default function OnboardingPage() {
         country,
         state,
         city: city || undefined,
-        profile_picture_url: profilePictureUrl,
+        profile_picture_url: fallbackAvatar, // Use fallback for now
         consent_given: consentGiven,
       });
+
+      // After signup succeeds, upload profile picture to backend if one was selected
+      if (profilePicture && response.data?.id) {
+        try {
+          const formData = new FormData();
+          formData.append('file', profilePicture);
+          
+          const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/upload/profile-picture`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${await firebaseUser.getIdToken()}`,
+            },
+            body: formData,
+          });
+
+          if (uploadResponse.ok) {
+            const uploadData = await uploadResponse.json();
+            const fullUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${uploadData.url}`;
+            
+            // Update user's profile picture URL
+            await userAPI.updateProfilePicture(response.data.id, fullUrl);
+          }
+        } catch (uploadError) {
+          console.warn('Profile picture upload failed, but signup succeeded:', uploadError);
+          // Don't block onboarding if upload fails - user can upload later in settings
+        }
+      }
 
       toast.success('Welcome to Happy Birthday Mate! 🎉');
       router.push('/dashboard');
