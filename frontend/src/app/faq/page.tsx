@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, ChevronDown, ChevronUp, ArrowLeft, HelpCircle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -208,7 +208,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   'troubleshooting': 'Troubleshooting',
 };
 
-export default function FAQPage() {
+function FAQPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
@@ -448,6 +448,18 @@ export default function FAQPage() {
       {/* Mobile Bottom Navigation */}
       {user && <MobileBottomNav show={isMobile} />}
     </div>
+  );
+}
+
+export default function FAQPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600"></div>
+      </div>
+    }>
+      <FAQPageContent />
+    </Suspense>
   );
 }
 
