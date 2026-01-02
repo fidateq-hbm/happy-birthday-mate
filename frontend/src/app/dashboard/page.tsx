@@ -94,7 +94,7 @@ export default function DashboardPage() {
     }
 
     try {
-      const response = await tribeAPI.getTribeRoom(user.tribe_id, user.id);
+      const response = await tribeAPI.getTribeRoom(user.tribe_id);
       router.push(`/tribe/${user.tribe_id}/room/${response.data.room_id}`);
     } catch (error) {
       toast.error('Failed to enter tribe room');
