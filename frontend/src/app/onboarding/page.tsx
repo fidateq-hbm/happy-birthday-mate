@@ -90,25 +90,13 @@ export default function OnboardingPage() {
       throw new Error('Profile picture is required. Please select an image.');
     }
 
-    // Upload to backend instead of Firebase Storage
-    const formData = new FormData();
-    formData.append('file', profilePicture);
-    formData.append('user_id', firebaseUser.uid);
-
+    // Upload to Firebase Storage during onboarding (before user exists in backend)
+    // After signup, profile picture updates can use the backend endpoint
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/upload/profile-picture`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload profile picture');
-      }
-
-      const data = await response.json();
-      // Prepend API URL to make it a full URL
-      const fullUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${data.url}`;
-      return fullUrl;
+      const storageRef = ref(storage, `profile_pictures/${firebaseUser.uid}/${Date.now()}_${profilePicture.name}`);
+      await uploadBytes(storageRef, profilePicture);
+      const downloadURL = await getDownloadURL(storageRef);
+      return downloadURL;
     } catch (error) {
       console.error('Upload error:', error);
       throw new Error('Failed to upload profile picture. Please try again.');
