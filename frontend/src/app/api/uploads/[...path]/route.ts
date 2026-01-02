@@ -25,8 +25,15 @@ export async function GET(
     // Get backend API URL
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     
-    // Construct backend URL
+    // Construct backend URL - backend serves static files at /uploads
     const backendUrl = `${apiUrl}/uploads/${imagePath}`;
+    
+    // Log for debugging (remove in production if needed)
+    console.log('Proxying image request:', {
+      imagePath,
+      backendUrl,
+      apiUrl
+    });
     
     // Fetch image from backend
     const response = await fetch(backendUrl, {
@@ -39,8 +46,14 @@ export async function GET(
     });
 
     if (!response.ok) {
+      console.error('Backend image fetch failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        backendUrl,
+        imagePath
+      });
       return NextResponse.json(
-        { error: 'Image not found' },
+        { error: 'Image not found', details: `Backend returned ${response.status} for ${backendUrl}` },
         { status: response.status }
       );
     }
