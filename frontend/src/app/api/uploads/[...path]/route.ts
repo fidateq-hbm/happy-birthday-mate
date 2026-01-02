@@ -34,8 +34,8 @@ export async function GET(
       });
     }
     
-    // Construct backend URL - backend serves static files at /uploads
-    const backendUrl = `${apiUrl}/uploads/${imagePath}`;
+    // Construct backend URL - backend serves static files at /api/uploads
+    const backendUrl = `${apiUrl}/api/uploads/${imagePath}`;
     
     // Log for debugging (remove in production if needed)
     console.log('Proxying image request:', {

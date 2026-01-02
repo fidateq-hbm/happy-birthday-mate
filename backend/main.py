@@ -109,8 +109,9 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Mount static files for uploads
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# Mount static files for uploads at /api/uploads to match frontend proxy
+# This makes files accessible at: https://backend.com/api/uploads/...
+app.mount("/api/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # CORS - Strict configuration for security
 app.add_middleware(
