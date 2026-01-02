@@ -65,8 +65,10 @@ async def upload_profile_picture(
     with open(file_path, "wb") as buffer:
         buffer.write(contents)
     
-    # Return URL (accessible via FastAPI static files)
-    file_url = f"/uploads/profile_pictures/{unique_filename}"
+    # Construct URL from request to ensure correct protocol and domain
+    # This works in both development and production without needing env vars
+    base_url = str(request.base_url).rstrip('/')
+    file_url = f"{base_url}/uploads/profile_pictures/{unique_filename}"
     
     return {
         "url": file_url,
@@ -143,10 +145,10 @@ async def upload_birthday_wall_photo(
     with open(file_path, "wb") as buffer:
         buffer.write(contents)
     
-    # Return full URL (prepend API URL if available)
-    # For production, use NEXT_PUBLIC_API_URL or API_URL from env
-    api_url = os.getenv("API_URL", os.getenv("NEXT_PUBLIC_API_URL", "http://localhost:8000"))
-    file_url = f"{api_url}/uploads/birthday_walls/{wall_id}/{unique_filename}"
+    # Construct URL from request to ensure correct protocol and domain
+    # This works in both development and production without needing env vars
+    base_url = str(request.base_url).rstrip('/')
+    file_url = f"{base_url}/uploads/birthday_walls/{wall_id}/{unique_filename}"
     
     return {
         "url": file_url,
