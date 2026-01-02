@@ -55,7 +55,8 @@ export function ReportContentModal({
         ? `${reasonText}: ${additionalDetails}`
         : reasonText;
 
-      await adminAPI.flagContent(user.id, {
+      // Note: flagContent uses Authorization header - user_id is extracted from token
+      await adminAPI.flagContent({
         content_type: contentType,
         content_id: contentId,
         reason: fullReason,

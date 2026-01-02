@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { giftAPI } from '@/lib/api';
 
-export default function PaymentCallbackPage() {
+function PaymentCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
@@ -102,6 +102,21 @@ export default function PaymentCallbackPage() {
         )}
       </motion.div>
     </div>
+  );
+}
+
+export default function PaymentCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4">
+        <div className="glass-effect rounded-3xl p-8 md:p-12 max-w-md w-full text-center">
+          <Loader2 className="w-16 h-16 text-primary-600 mx-auto mb-6 animate-spin" />
+          <h2 className="text-2xl font-bold gradient-text mb-4">Loading...</h2>
+        </div>
+      </div>
+    }>
+      <PaymentCallbackContent />
+    </Suspense>
   );
 }
 
