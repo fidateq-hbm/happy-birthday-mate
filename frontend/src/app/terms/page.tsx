@@ -7,11 +7,25 @@ import { motion } from 'framer-motion';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useAuthStore } from '@/store/authStore';
+import { usePageMetadata } from '@/hooks/usePageMetadata';
 
 export default function TermsOfServicePage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [isMobile, setIsMobile] = useState(false);
+
+  usePageMetadata({
+    title: 'Terms of Service',
+    description: 'Read Happy Birthday Mate\'s Terms of Service. Understand the rules and guidelines for using our celebration platform.',
+    keywords: [
+      'terms of service',
+      'terms and conditions',
+      'user agreement',
+      'platform rules',
+      'terms',
+    ],
+    canonical: '/terms',
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);

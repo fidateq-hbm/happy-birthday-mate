@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useAuthStore } from '@/store/authStore';
+import { usePageMetadata } from '@/hooks/usePageMetadata';
 
 const HELP_CATEGORIES = [
   {

@@ -9,6 +9,7 @@ import { MobileAppHeader } from '@/components/MobileAppHeader';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useAuthStore } from '@/store/authStore';
 import { userAPI } from '@/lib/api';
+import { usePageMetadata } from '@/hooks/usePageMetadata';
 
 const CONTACT_REASONS = [
   { value: 'account', label: 'Account Issue', emoji: '👤' },
