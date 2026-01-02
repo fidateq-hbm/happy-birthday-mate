@@ -23,7 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         try {
           // Fetch user data from backend
-          const response = await authAPI.getMe(firebaseUser.uid);
+          // Note: getMe() uses Authorization header from Firebase token automatically
+          const response = await authAPI.getMe();
           setUser(response.data);
         } catch (error: any) {
           // 404 means user hasn't completed onboarding yet - this is expected for new users

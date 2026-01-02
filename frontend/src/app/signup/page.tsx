@@ -41,8 +41,9 @@ export default function SignupPage() {
           const firebaseUser = signInResult.user;
           
           // Check if user exists in backend (completed onboarding)
+          // Note: getMe() uses Authorization header from Firebase token automatically
           try {
-            await authAPI.getMe(firebaseUser.uid);
+            await authAPI.getMe();
             // User exists in backend - they completed signup
             toast.error('This email is already registered. Please log in instead.');
             router.push('/login');

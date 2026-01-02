@@ -72,7 +72,8 @@ export function LoginForm() {
       // Check if user exists in backend
       // If not, redirect to onboarding
       try {
-        await authAPI.getMe(result.user.uid);
+        // Note: getMe() uses Authorization header from Firebase token automatically
+        await authAPI.getMe();
         toast.success('Welcome back! 🎉');
         router.push('/dashboard');
       } catch {

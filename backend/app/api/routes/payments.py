@@ -1,7 +1,7 @@
 """
 Payment webhook handlers
 """
-from fastapi import APIRouter, Request, HTTPException, status, Header
+from fastapi import APIRouter, Request, HTTPException, status, Header, Depends
 from sqlalchemy.orm import Session
 from typing import Optional
 import json
