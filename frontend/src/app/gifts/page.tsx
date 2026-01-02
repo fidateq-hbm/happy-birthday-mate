@@ -797,18 +797,24 @@ export default function GiftsPage() {
                     <CreditCard className="w-4 h-4" />
                     Payment Method
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['stripe', 'paypal', 'paystack'].map((provider) => (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { id: 'flutterwave', name: 'Flutterwave', icon: '💳' },
+                      { id: 'stripe', name: 'Stripe', icon: '💳' },
+                      { id: 'paypal', name: 'PayPal', icon: '💳' },
+                      { id: 'paystack', name: 'Paystack', icon: '💳' }
+                    ].map((provider) => (
                       <button
-                        key={provider}
-                        onClick={() => setPaymentProvider(provider as any)}
-                        className={`p-4 rounded-xl border-2 transition-all capitalize ${
-                          paymentProvider === provider
+                        key={provider.id}
+                        onClick={() => setPaymentProvider(provider.id as any)}
+                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                          paymentProvider === provider.id
                             ? 'border-primary-500 bg-primary-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        {provider}
+                        <span className="text-2xl">{provider.icon}</span>
+                        <span className="text-sm font-semibold">{provider.name}</span>
                       </button>
                     ))}
                   </div>
