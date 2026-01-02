@@ -76,7 +76,23 @@ export default function SettingsPage() {
       window.location.reload();
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to upload profile picture');
+      
+      // Extract error message safely - ensure it's always a string
+      let errorMessage = 'Failed to upload profile picture';
+      
+      if (error.response?.data) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (typeof error.response.data.message === 'string') {
+          errorMessage = error.response.data.message;
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        }
+      } else if (error.message && typeof error.message === 'string') {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
