@@ -444,6 +444,20 @@ export default function BirthdayWallPage() {
                 </div>
               )}
               
+              {/* Frame Selection Button - Outside the label */}
+              <div className="mb-3 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowFramePicker(!showFramePicker);
+                  }}
+                  className={`px-4 py-2 rounded-lg bg-primary-100 text-primary-700 hover:bg-primary-200 transition-colors ${isMobile ? 'text-xs' : 'text-sm'}`}
+                >
+                  {showFramePicker ? 'Hide' : 'Choose'} Frame
+                </button>
+              </div>
+              
+              {/* Upload Area - Label only for file input */}
               <label className={`glass-effect rounded-2xl flex flex-col items-center cursor-pointer hover:shadow-xl transition-all border-2 border-dashed border-primary-300 ${isMobile ? 'p-5' : 'p-6'}`}>
                 <Upload className={`text-primary-600 mb-3 ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`} />
                 <p className={`font-semibold mb-1 ${isMobile ? 'text-base' : 'text-lg'}`}>Upload a Photo</p>
@@ -453,16 +467,6 @@ export default function BirthdayWallPage() {
                     Frame: {selectedFrame}
                   </p>
                 )}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowFramePicker(!showFramePicker);
-                  }}
-                  className={`mt-2 px-3 py-1 rounded-lg bg-primary-100 text-primary-700 hover:bg-primary-200 transition-colors ${isMobile ? 'text-xs' : 'text-sm'}`}
-                >
-                  {showFramePicker ? 'Hide' : 'Choose'} Frame
-                </button>
                 <input
                   type="file"
                   accept="image/*"
