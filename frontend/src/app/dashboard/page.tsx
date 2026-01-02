@@ -308,7 +308,7 @@ export default function DashboardPage() {
           )}
 
           {/* Quick Actions */}
-          <div className={`grid grid-cols-2 ${user.is_admin ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 md:gap-4`}>
+          <div className={`grid grid-cols-2 ${user.is_admin ? 'md:grid-cols-6' : 'md:grid-cols-5'} gap-3 md:gap-4`}>
             <button
               onClick={async () => {
                 try {
@@ -330,6 +330,15 @@ export default function DashboardPage() {
               <Image className="w-6 h-6 md:w-8 md:h-8 text-primary-600 mb-2 md:mb-3 mx-auto sm:mx-0" />
               <h4 className="font-bold text-sm md:text-lg mb-1">Birthday Wall</h4>
               <p className="text-xs md:text-sm text-gray-600 hidden sm:block">View or create your photo gallery</p>
+            </button>
+            
+            <button
+              onClick={() => router.push('/birthday-wall/archive')}
+              className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-6 hover:shadow-xl transition-all text-center sm:text-left"
+            >
+              <Image className="w-6 h-6 md:w-8 md:h-8 text-purple-600 mb-2 md:mb-3 mx-auto sm:mx-0" />
+              <h4 className="font-bold text-sm md:text-lg mb-1">Wall Archive</h4>
+              <p className="text-xs md:text-sm text-gray-600 hidden sm:block">View all your past birthday walls</p>
             </button>
 
             <button

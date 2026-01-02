@@ -18,6 +18,7 @@ interface Photo {
   caption: string;
   uploaded_by: string;
   created_at: string;
+  frame_style?: string;
   reactions?: {
     "❤️": number;
     "👍": number;
@@ -36,6 +37,9 @@ interface Wall {
   animation_intensity?: string;
   owner_name: string;
   is_active: boolean;
+  is_open?: boolean;
+  is_archived?: boolean;
+  birthday_year?: number;
   photos: Photo[];
 }
 
@@ -48,6 +52,8 @@ export default function BirthdayWallPage() {
   const [uploading, setUploading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [reacting, setReacting] = useState<number | null>(null); // Track which photo is being reacted to
+  const [selectedFrame, setSelectedFrame] = useState<string>('none');
+  const [showFramePicker, setShowFramePicker] = useState(false);
 
   const wallCode = params.wallCode as string;
 
@@ -144,7 +150,7 @@ export default function BirthdayWallPage() {
 
       // Add to wall
       console.log('Adding photo to wall...');
-      await roomAPI.uploadPhotoToWall(wall.wall_id, photoUrl, '', user.id);
+      await roomAPI.uploadPhotoToWall(wall.wall_id, photoUrl, '', user.id, selectedFrame);
       
       console.log('Photo upload successful!');
       toast.success('Photo uploaded! 📸');
@@ -244,6 +250,12 @@ export default function BirthdayWallPage() {
   const handleReaction = async (photoId: number, emoji: string) => {
     if (!user || !wall) return;
     
+    // Don't allow reactions on archived walls
+    if (wall.is_archived) {
+      toast.error('This wall is archived. Reactions are disabled.');
+      return;
+    }
+    
     setReacting(photoId);
     try {
       await roomAPI.addPhotoReaction(wall.wall_id, photoId, emoji, user.id);
@@ -259,6 +271,40 @@ export default function BirthdayWallPage() {
       toast.error(errorMessage);
     } finally {
       setReacting(null);
+    }
+  };
+
+  // Frame styling functions
+  const getFrameClass = (frameStyle: string) => {
+    switch (frameStyle) {
+      case 'classic': return 'p-3';
+      case 'elegant': return 'p-4';
+      case 'vintage': return 'p-2';
+      case 'modern': return 'p-1';
+      case 'gold': return 'p-3';
+      case 'rainbow': return 'p-2';
+      case 'polaroid': return 'p-4 bg-white';
+      default: return '';
+    }
+  };
+
+  const getFrameWrapperClass = (frameStyle: string) => {
+    switch (frameStyle) {
+      case 'classic': return 'border-4 border-gray-800 rounded-lg p-2 bg-gray-100';
+      case 'elegant': return 'border-2 border-gray-400 rounded-lg shadow-lg p-3 bg-white';
+      case 'vintage': return 'border-4 border-amber-600 rounded-lg p-2 bg-amber-50';
+      case 'modern': return 'border-2 border-gray-300 rounded-lg p-1 bg-gray-50';
+      case 'gold': return 'border-4 border-yellow-500 rounded-lg p-2 bg-yellow-50 shadow-lg';
+      case 'rainbow': return 'border-4 border-transparent bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 rounded-lg p-1';
+      case 'polaroid': return 'bg-white p-4 shadow-2xl rounded-sm';
+      default: return '';
+    }
+  };
+
+  const getFrameImageClass = (frameStyle: string) => {
+    switch (frameStyle) {
+      case 'polaroid': return 'rounded-sm';
+      default: return 'rounded-lg';
     }
   };
 
@@ -352,13 +398,69 @@ export default function BirthdayWallPage() {
 
         {/* Content */}
         <main className={`mx-auto relative z-10 ${isMobile ? 'px-3 pt-32 pb-32' : 'max-w-6xl px-4 py-8'}`}>
-          {/* Upload Section */}
-          {user && wall.is_active && (
+          {/* Archive Status Banner */}
+          {wall.is_archived && (
             <div className={`mb-6 ${isMobile ? 'mb-6' : 'mb-8'} relative z-20`}>
+              <div className="glass-effect rounded-2xl p-4 border-2 border-amber-300 bg-amber-50/50">
+                <p className={`text-center font-semibold text-amber-800 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  📸 Archive - {wall.birthday_year} Birthday Wall
+                </p>
+                <p className={`text-center text-amber-700 mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  This wall is archived and read-only. View your memories from {wall.birthday_year}!
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Upload Section - Only show when wall is open */}
+          {user && wall.is_active && wall.is_open && !wall.is_archived && (
+            <div className={`mb-6 ${isMobile ? 'mb-6' : 'mb-8'} relative z-20`}>
+              {/* Frame Picker */}
+              {showFramePicker && (
+                <div className="glass-effect rounded-xl p-4 mb-4 border-2 border-primary-200">
+                  <p className={`font-semibold mb-3 ${isMobile ? 'text-sm' : 'text-base'}`}>Choose Frame Style</p>
+                  <div className={`grid ${isMobile ? 'grid-cols-4' : 'grid-cols-4'} gap-2`}>
+                    {['none', 'classic', 'elegant', 'vintage', 'modern', 'gold', 'rainbow', 'polaroid'].map((frame) => (
+                      <button
+                        key={frame}
+                        onClick={() => {
+                          setSelectedFrame(frame);
+                          setShowFramePicker(false);
+                        }}
+                        className={`p-2 rounded-lg border-2 transition-all capitalize ${
+                          selectedFrame === frame
+                            ? 'border-primary-500 bg-primary-100'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                          {frame === 'none' ? 'None' : frame}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <label className={`glass-effect rounded-2xl flex flex-col items-center cursor-pointer hover:shadow-xl transition-all border-2 border-dashed border-primary-300 ${isMobile ? 'p-5' : 'p-6'}`}>
                 <Upload className={`text-primary-600 mb-3 ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`} />
                 <p className={`font-semibold mb-1 ${isMobile ? 'text-base' : 'text-lg'}`}>Upload a Photo</p>
                 <p className={`text-gray-600 ${isMobile ? 'text-xs' : 'text-sm'}`}>Share a memory to the birthday wall</p>
+                {selectedFrame !== 'none' && (
+                  <p className={`text-primary-600 mt-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                    Frame: {selectedFrame}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowFramePicker(!showFramePicker);
+                  }}
+                  className={`mt-2 px-3 py-1 rounded-lg bg-primary-100 text-primary-700 hover:bg-primary-200 transition-colors ${isMobile ? 'text-xs' : 'text-sm'}`}
+                >
+                  {showFramePicker ? 'Hide' : 'Choose'} Frame
+                </button>
                 <input
                   type="file"
                   accept="image/*"
@@ -397,12 +499,14 @@ export default function BirthdayWallPage() {
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   className={isMobile ? '' : 'break-inside-avoid'}
                 >
-                  <div className={`glass-effect rounded-2xl hover:shadow-xl transition-all ${isMobile ? 'p-2 mb-4' : 'p-2'}`}>
-                    <img
-                      src={photo.photo_url}
-                      alt={photo.caption || 'Birthday memory'}
-                      className={`w-full rounded-xl object-cover ${isMobile ? 'max-h-64' : ''}`}
-                    />
+                  <div className={`glass-effect rounded-2xl hover:shadow-xl transition-all ${isMobile ? 'p-2 mb-4' : 'p-2'} ${getFrameClass(photo.frame_style || 'none')}`}>
+                    <div className={`${getFrameWrapperClass(photo.frame_style || 'none')}`}>
+                      <img
+                        src={photo.photo_url}
+                        alt={photo.caption || 'Birthday memory'}
+                        className={`w-full object-cover ${getFrameImageClass(photo.frame_style || 'none')} ${isMobile ? 'max-h-64' : ''}`}
+                      />
+                    </div>
                     {photo.caption && (
                       <p className={`${isMobile ? 'p-2 text-xs' : 'p-3 text-sm'}`}>{photo.caption}</p>
                     )}

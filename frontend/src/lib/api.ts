@@ -90,14 +90,17 @@ export const roomAPI = {
     api.post(`/rooms/birthday-wall?user_id=${userId}`, data),
   getUserBirthdayWall: (userId: number) =>
     api.get(`/rooms/birthday-wall/user/${userId}`),
+  getWallArchive: (userId: number) =>
+    api.get(`/rooms/birthday-wall/user/${userId}/archive`),
   getBirthdayWall: (wallCode: string, userId?: number) =>
     api.get(`/rooms/birthday-wall/${wallCode}`, { 
       params: userId ? { user_id: userId } : {} 
     }),
-  uploadPhotoToWall: (wallId: number, photoUrl: string, caption: string, userId: number) =>
+  uploadPhotoToWall: (wallId: number, photoUrl: string, caption: string, userId: number, frameStyle?: string) =>
     api.post(`/rooms/birthday-wall/${wallId}/photos?user_id=${userId}`, { 
       photo_url: photoUrl, 
-      caption
+      caption,
+      frame_style: frameStyle || "none"
     }),
   addPhotoReaction: (wallId: number, photoId: number, emoji: string, userId: number) =>
     api.post(`/rooms/birthday-wall/${wallId}/photos/${photoId}/reactions?user_id=${userId}`, {

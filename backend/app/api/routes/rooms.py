@@ -27,6 +27,7 @@ class CreateBirthdayWallRequest(BaseModel):
 class UploadPhotoToWallRequest(BaseModel):
     photo_url: str
     caption: Optional[str] = ""
+    frame_style: Optional[str] = "none"  # Frame style for photo
 
 
 class AddPhotoReactionRequest(BaseModel):
@@ -213,6 +214,16 @@ async def create_birthday_wall(
     opens_at = datetime.combine(birthday_this_year - timedelta(days=1), datetime.min.time())
     closes_at = datetime.combine(birthday_this_year + timedelta(days=2), datetime.max.time())
     
+    # ENFORCE: Wall can only be created within 24 hours before birthday
+    now = datetime.utcnow()
+    if now < opens_at:
+        hours_until_open = (opens_at - now).total_seconds() / 3600
+        if hours_until_open > 24:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Birthday Wall can only be created within 24 hours before your birthday. Your wall will open in {int(hours_until_open)} hours."
+            )
+    
     # Generate public URL code
     public_url_code = secrets.token_urlsafe(12)
     
@@ -235,6 +246,7 @@ async def create_birthday_wall(
         animation_intensity=request.animation_intensity or "medium",
         opens_at=opens_at,
         closes_at=closes_at,
+        birthday_year=birthday_this_year.year,  # Store year for archive
         is_active=True,
         public_url_code=public_url_code
     )
@@ -304,9 +316,15 @@ async def get_user_birthday_wall(
             "caption": photo.caption,
             "uploaded_by": photo.uploaded_by_name,
             "created_at": photo.created_at,
+            "frame_style": photo.frame_style or "none",
             "reactions": reaction_counts,
             "user_reacted": list(user_reactions)
         })
+    
+    # Check if wall is open
+    now = datetime.utcnow()
+    is_open = wall.opens_at <= now <= wall.closes_at
+    is_archived = now > wall.closes_at
     
     return {
         "wall_id": wall.id,
@@ -318,6 +336,9 @@ async def get_user_birthday_wall(
         "background_color": wall.background_color,
         "animation_intensity": wall.animation_intensity,
         "is_active": wall.is_active,
+        "is_open": is_open,
+        "is_archived": is_archived,
+        "birthday_year": wall.birthday_year,
         "opens_at": wall.opens_at,
         "closes_at": wall.closes_at,
         "photos": photo_data
@@ -330,7 +351,7 @@ async def get_birthday_wall(
     user_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    """Get birthday wall by public URL code"""
+    """Get birthday wall by public URL code (accessible even after close for archive viewing)"""
     
     wall = db.query(BirthdayWall).filter(
         BirthdayWall.public_url_code == wall_code
@@ -341,6 +362,11 @@ async def get_birthday_wall(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Birthday wall not found"
         )
+    
+    # Check if wall is open (for uploads/reactions)
+    now = datetime.utcnow()
+    is_open = wall.opens_at <= now <= wall.closes_at
+    is_archived = now > wall.closes_at
     
     # Get photos (include unapproved for owner, approved for others)
     if user_id and wall.owner_id == user_id:
@@ -355,8 +381,8 @@ async def get_birthday_wall(
             WallPhoto.is_approved == True
         ).order_by(WallPhoto.display_order).all()
     
-    # Increment view count (only if not owner viewing their own wall)
-    if not user_id or wall.owner_id != user_id:
+    # Increment view count (only if not owner viewing their own wall, and not archived)
+    if (not user_id or wall.owner_id != user_id) and not is_archived:
         wall.view_count += 1
         db.commit()
     
@@ -396,6 +422,7 @@ async def get_birthday_wall(
             "caption": photo.caption,
             "uploaded_by": photo.uploaded_by_name,
             "created_at": photo.created_at,
+            "frame_style": photo.frame_style or "none",
             "reactions": reaction_counts,
             "user_reacted": list(user_reactions)
         })
@@ -410,6 +437,11 @@ async def get_birthday_wall(
         "animation_intensity": wall.animation_intensity,
         "owner_name": owner.first_name if owner else "Unknown",
         "is_active": wall.is_active,
+        "is_open": is_open,
+        "is_archived": is_archived,
+        "birthday_year": wall.birthday_year,
+        "opens_at": wall.opens_at,
+        "closes_at": wall.closes_at,
         "photos": photo_data
     }
 
@@ -421,13 +453,27 @@ async def upload_photo_to_wall(
     user_id: int,
     db: Session = Depends(get_db)
 ):
-    """Upload photo to birthday wall"""
+    """Upload photo to birthday wall (only allowed when wall is open)"""
     
     wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
     if not wall:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Birthday wall not found"
+        )
+    
+    # Check if wall is open (enforce time-based access)
+    now = datetime.utcnow()
+    if now < wall.opens_at:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Birthday wall is not open yet. It will open 24 hours before your birthday."
+        )
+    
+    if now > wall.closes_at:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Birthday wall is closed. It closed 48 hours after your birthday and is now archived."
         )
     
     if not wall.is_active:
@@ -446,6 +492,12 @@ async def upload_photo_to_wall(
     
     user = db.query(User).filter(User.id == user_id).first()
     
+    # Validate frame style
+    valid_frames = ["none", "classic", "elegant", "vintage", "modern", "gold", "rainbow", "polaroid"]
+    frame_style = request.frame_style or "none"
+    if frame_style not in valid_frames:
+        frame_style = "none"
+    
     photo = WallPhoto(
         wall_id=wall_id,
         photo_url=request.photo_url,
@@ -453,6 +505,7 @@ async def upload_photo_to_wall(
         uploaded_by_user_id=user_id,
         uploaded_by_name=user.first_name if user else "Guest",
         display_order=photo_count,
+        frame_style=frame_style,
         is_approved=True  # Auto-approve photos uploaded by the wall owner
     )
     db.add(photo)
@@ -532,4 +585,63 @@ async def add_photo_reaction(
             "action": "added",
             "reaction_id": reaction.id
         }
+
+
+@router.get("/birthday-wall/user/{user_id}/archive")
+async def get_user_wall_archive(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get all birthday walls for a user, grouped by year (archive)"""
+    
+    walls = db.query(BirthdayWall).filter(
+        BirthdayWall.owner_id == user_id
+    ).order_by(BirthdayWall.birthday_year.desc(), BirthdayWall.created_at.desc()).all()
+    
+    # Group walls by year
+    archive_by_year = {}
+    for wall in walls:
+        year = wall.birthday_year
+        if year not in archive_by_year:
+            archive_by_year[year] = []
+        
+        # Get photo count
+        photo_count = db.query(WallPhoto).filter(
+            WallPhoto.wall_id == wall.id,
+            WallPhoto.is_approved == True
+        ).count()
+        
+        # Check status
+        now = datetime.utcnow()
+        is_open = wall.opens_at <= now <= wall.closes_at
+        is_archived = now > wall.closes_at
+        
+        archive_by_year[year].append({
+            "wall_id": wall.id,
+            "public_url_code": wall.public_url_code,
+            "title": wall.title,
+            "theme": wall.theme,
+            "accent_color": wall.accent_color,
+            "birthday_year": wall.birthday_year,
+            "photo_count": photo_count,
+            "is_open": is_open,
+            "is_archived": is_archived,
+            "created_at": wall.created_at,
+            "opens_at": wall.opens_at,
+            "closes_at": wall.closes_at
+        })
+    
+    # Convert to list format sorted by year (descending)
+    archive_list = [
+        {
+            "year": year,
+            "walls": walls_data
+        }
+        for year, walls_data in sorted(archive_by_year.items(), reverse=True)
+    ]
+    
+    return {
+        "archive": archive_list,
+        "total_walls": len(walls)
+    }
 

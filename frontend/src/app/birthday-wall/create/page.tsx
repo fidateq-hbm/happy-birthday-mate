@@ -363,8 +363,9 @@ export default function CreateBirthdayWallPage() {
             {/* Info */}
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <p className="text-sm text-blue-900">
-                <strong>Note:</strong> Your Birthday Wall opens 24 hours before your birthday 
-                and closes 48 hours after. Friends can upload photos and react with emojis.
+                <strong>Note:</strong> Your Birthday Wall can only be created within 24 hours before your birthday. 
+                It opens 24 hours before your birthday and closes 48 hours after. After closing, it becomes an archived memory 
+                labeled by year that you can always revisit. Friends can upload photos and react with emojis while it's open.
               </p>
             </div>
 

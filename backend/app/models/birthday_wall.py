@@ -24,6 +24,17 @@ class BackgroundAnimationEnum(str, enum.Enum):
     CONFETTI = "confetti"
 
 
+class PhotoFrameEnum(str, enum.Enum):
+    NONE = "none"
+    CLASSIC = "classic"
+    ELEGANT = "elegant"
+    VINTAGE = "vintage"
+    MODERN = "modern"
+    GOLD = "gold"
+    RAINBOW = "rainbow"
+    POLAROID = "polaroid"
+
+
 class BirthdayWall(Base):
     __tablename__ = "birthday_walls"
     
@@ -44,6 +55,9 @@ class BirthdayWall(Base):
     opens_at = Column(DateTime, nullable=False)
     closes_at = Column(DateTime, nullable=False)
     is_active = Column(Boolean, default=True)
+    
+    # Archive: Store the year this wall belongs to for archive viewing
+    birthday_year = Column(Integer, nullable=False)  # Year of the birthday this wall celebrates
     
     # Sharing
     public_url_code = Column(String, unique=True, nullable=False)
@@ -82,6 +96,9 @@ class WallPhoto(Base):
     
     # Display order
     display_order = Column(Integer, default=0)
+    
+    # Beautification
+    frame_style = Column(String, default="none")  # Frame style for photo
     
     # Moderation
     is_approved = Column(Boolean, default=True)
