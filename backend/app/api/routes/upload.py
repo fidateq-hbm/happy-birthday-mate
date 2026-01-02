@@ -68,7 +68,8 @@ async def upload_profile_picture(
     # Construct URL from request to ensure correct protocol and domain
     # This works in both development and production without needing env vars
     base_url = str(request.base_url).rstrip('/')
-    file_url = f"{base_url}/uploads/profile_pictures/{unique_filename}"
+    # Use /api/uploads to match the static files mount path
+    file_url = f"{base_url}/api/uploads/profile_pictures/{unique_filename}"
     
     return {
         "url": file_url,
@@ -148,7 +149,8 @@ async def upload_birthday_wall_photo(
     # Construct URL from request to ensure correct protocol and domain
     # This works in both development and production without needing env vars
     base_url = str(request.base_url).rstrip('/')
-    file_url = f"{base_url}/uploads/birthday_walls/{wall_id}/{unique_filename}"
+    # Use /api/uploads to match the static files mount path
+    file_url = f"{base_url}/api/uploads/birthday_walls/{wall_id}/{unique_filename}"
     
     return {
         "url": file_url,
