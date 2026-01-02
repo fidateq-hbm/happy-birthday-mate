@@ -145,18 +145,15 @@ export default function AboutPage() {
           <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-6 text-center">
             Our Story
           </h2>
-          <div className="space-y-6 text-gray-700 text-base md:text-lg leading-relaxed max-w-4xl mx-auto">
+          <div className="space-y-6 text-gray-700 text-base md:text-lg leading-relaxed max-w-4xl mx-auto text-justify">
             <p>
-              Happy Birthday Mate was born from a simple observation: birthdays are universal, but the way we celebrate them shouldn't be limited by geography or circumstance.
-              We envisioned a platform where finding someone who shares your exact birthday is just the beginning of a beautiful connection.
+              Happy Birthday Mate was born from a simple observation: birthdays are universal, but the way we celebrate them shouldn't be limited by geography or circumstance. We envisioned a platform where finding others who share your exact birthday becomes exciting, enthusiastic, and just the beginning of a beautiful connection.
             </p>
             <p>
-              Our platform brings together people from all walks of life—whether you're celebrating your 18th or 80th birthday, whether you're in New York or Nairobi,
-              whether you prefer quiet celebrations or grand parties. Here, you're part of a tribe that understands the significance of your special day.
+              Our platform brings together people from all walks of life—whether you're celebrating your 18th or 80th birthday, whether you're in New York or Lagos, whether you prefer quiet celebrations or grand parties. Here, you're part of a tribe that understands the significance of your special day.
             </p>
             <p>
-              Through Birthday Walls, Tribe Rooms, digital gifts, and meaningful connections, we're creating a space where every birthday becomes a moment worth celebrating,
-              and every celebrant finds their community.
+              Through Birthday Walls, Tribe Rooms, digital gifts, and meaningful connections, we're creating a space where every birthday becomes a moment worth celebrating, and every celebrant finds their community.
             </p>
           </div>
         </motion.div>

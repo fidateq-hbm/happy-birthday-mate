@@ -71,7 +71,7 @@ export default function TermsOfServicePage() {
             <strong>Happy Birthday Mate</strong>
           </p>
           <p className="text-gray-500 text-sm md:text-base mt-2">
-            Effective Date: January 1, 2026
+            Last updated: January 2026
           </p>
         </motion.div>
 
@@ -86,27 +86,15 @@ export default function TermsOfServicePage() {
           <section>
             <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">1. Acceptance of Terms</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              By accessing or using Happy Birthday Mate, you agree to these Terms of Service.
-            </p>
-            <p className="text-gray-700 leading-relaxed">
-              If you do not agree, please do not use the platform.
+              By accessing or using Happy Birthday Mate, you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service.
             </p>
           </section>
 
           {/* Section 2 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">2. Nature of the Platform</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Happy Birthday Mate is:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>A time-bound digital celebration platform</li>
-              <li>Not a social network</li>
-              <li>Not a marketplace</li>
-              <li>Not a dating or planning service</li>
-            </ul>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">2. Description of Service</h2>
             <p className="text-gray-700 leading-relaxed">
-              Celebration spaces open and close automatically.
+              Happy Birthday Mate is a digital celebration platform that connects people who share birthdays and enables social interaction, celebrations, and optional paid features.
             </p>
           </section>
 
@@ -117,9 +105,9 @@ export default function TermsOfServicePage() {
               You must:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+              <li>Be at least 13 years old</li>
               <li>Provide accurate information</li>
-              <li>Have consent if registering on behalf of another person</li>
-              <li>Be legally permitted to use digital services in your country</li>
+              <li>Use the Service for lawful purposes only</li>
             </ul>
           </section>
 
@@ -129,131 +117,148 @@ export default function TermsOfServicePage() {
             <p className="text-gray-700 leading-relaxed mb-4">
               You are responsible for:
             </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Maintaining account security</li>
-              <li>Activities conducted under your account</li>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+              <li>Maintaining the confidentiality of your account</li>
+              <li>All activities conducted under your account</li>
+              <li>Ensuring content you post complies with these Terms</li>
             </ul>
-            <p className="text-gray-700 leading-relaxed">
-              We reserve the right to suspend or terminate accounts for violations.
-            </p>
           </section>
 
           {/* Section 5 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">5. Acceptable Use</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">5. User Conduct</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               You agree not to:
             </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Harass, abuse, or threaten others</li>
-              <li>Upload offensive or illegal content</li>
-              <li>Impersonate others</li>
-              <li>Attempt to access unauthorized areas</li>
-              <li>Exploit celebrants or guests</li>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+              <li>Harass, abuse, or harm others</li>
+              <li>Impersonate any person or entity</li>
+              <li>Upload malicious, illegal, or offensive content</li>
+              <li>Attempt to breach platform security</li>
+              <li>Exploit or scrape platform data</li>
             </ul>
+            <p className="text-gray-700 leading-relaxed">
+              Violations may result in suspension or termination.
+            </p>
           </section>
 
           {/* Section 6 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">6. Content & Celebrations</h2>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Celebration content is temporary by design</li>
-              <li>We may moderate or remove content that violates platform rules</li>
-              <li>You retain ownership of content you upload, but grant us permission to display it during celebrations</li>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">6. Content Ownership</h2>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+              <li>You retain ownership of content you create.</li>
+              <li>By posting content, you grant Happy Birthday Mate a non-exclusive, royalty-free license to display and distribute it within the platform.</li>
+              <li>We reserve the right to remove content that violates these Terms.</li>
             </ul>
           </section>
 
           {/* Section 7 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">7. Payments & Digital Goods</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              When enabled:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Digital gifts and services are non-refundable unless required by law</li>
-              <li>Prices may change</li>
-              <li>Availability may vary by country</li>
-              <li>We reserve the right to add or remove monetization features.</li>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">7. Payments & Paid Features</h2>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+              <li>Some features may require payment.</li>
+              <li>Payments are processed by third-party providers such as Flutterwave.</li>
+              <li>Fees, pricing, and charges will be clearly disclosed before purchase.</li>
+              <li>Transaction fees or international processing fees may apply.</li>
+              <li>All payments are final unless otherwise required by law.</li>
             </ul>
           </section>
 
           {/* Section 8 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">8. Third-Party Services</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">8. Refunds</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Happy Birthday Mate may integrate:
+              Refunds, where applicable, are subject to:
             </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Payment processors</li>
-              <li>AI services</li>
-              <li>Fulfillment providers (for branded merchandise)</li>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+              <li>The nature of the service</li>
+              <li>Applicable laws</li>
+              <li>Payment processor policies</li>
             </ul>
-            <p className="text-gray-700 leading-relaxed">
-              We are not responsible for third-party service failures.
+            <p className="text-gray-700 leading-relaxed mt-4">
+              Digital goods and virtual features may be non-refundable.
             </p>
           </section>
 
           {/* Section 9 */}
           <section>
             <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">9. Platform Availability</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              We strive for reliability but do not guarantee uninterrupted access.
+            <p className="text-gray-700 leading-relaxed">
+              We aim for continuous availability but do not guarantee uninterrupted access. Maintenance, updates, or external issues may cause downtime.
             </p>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              The platform may be unavailable due to:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Maintenance</li>
-              <li>Updates</li>
-              <li>Technical issues</li>
-            </ul>
           </section>
 
           {/* Section 10 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">10. Limitation of Liability</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">10. Disclaimer of Warranties</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Happy Birthday Mate is provided "as is."
+              The Service is provided "as is" and "as available."
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              We are not liable for:
+              We make no warranties regarding:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Emotional outcomes of celebrations</li>
-              <li>Missed messages or gifts</li>
-              <li>Third-party failures</li>
-              <li>Indirect or consequential damages</li>
+              <li>Continuous operation</li>
+              <li>Error-free performance</li>
+              <li>User behavior or interactions</li>
             </ul>
           </section>
 
           {/* Section 11 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">11. Termination</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">11. Limitation of Liability</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              You may stop using the platform at any time.
-            </p>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              We may suspend or terminate access if:
+              To the maximum extent permitted by law, Happy Birthday Mate shall not be liable for:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Terms are violated</li>
-              <li>Legal compliance requires it</li>
+              <li>Indirect or consequential damages</li>
+              <li>Loss of data or revenue</li>
+              <li>User-generated content or interactions</li>
             </ul>
           </section>
 
           {/* Section 12 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">12. Governing Law</h2>
-            <p className="text-gray-700 leading-relaxed">
-              These Terms are governed by applicable international principles and local laws where required.
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">12. Indemnification</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              You agree to indemnify and hold Happy Birthday Mate harmless from claims arising from:
             </p>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+              <li>Your use of the Service</li>
+              <li>Violation of these Terms</li>
+              <li>Infringement of third-party rights</li>
+            </ul>
           </section>
 
           {/* Section 13 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">13. Contact</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">13. Termination</h2>
+            <p className="text-gray-700 leading-relaxed">
+              We may suspend or terminate access at our discretion if these Terms are violated or for platform integrity reasons.
+            </p>
+          </section>
+
+          {/* Section 14 */}
+          <section>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">14. Governing Law</h2>
+            <p className="text-gray-700 leading-relaxed">
+              These Terms shall be governed by the laws of the Federal Republic of Nigeria, without regard to conflict of law principles.
+            </p>
+          </section>
+
+          {/* Section 15 */}
+          <section>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">15. Changes to Terms</h2>
+            <p className="text-gray-700 leading-relaxed">
+              We may modify these Terms at any time. Continued use of the Service constitutes acceptance of updated Terms.
+            </p>
+          </section>
+
+          {/* Section 16 */}
+          <section>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">16. Contact</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              For questions or disputes:
+              For questions or support:
             </p>
             <div className="flex items-center gap-2 text-primary-600">
               <Mail className="w-5 h-5" />

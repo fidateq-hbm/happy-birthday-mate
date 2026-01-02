@@ -58,10 +58,7 @@ export default function PrivacyPolicyPage() {
             <strong>Happy Birthday Mate</strong>
           </p>
           <p className="text-gray-500 text-sm md:text-base mt-2">
-            Effective Date: January 1, 2026
-          </p>
-          <p className="text-gray-500 text-sm md:text-base">
-            Website: <a href="https://www.happybirthdaymate.com" className="text-primary-600 hover:underline">https://www.happybirthdaymate.com</a>
+            Last updated: January 2026
           </p>
         </motion.div>
 
@@ -76,19 +73,10 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">1. Introduction</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Happy Birthday Mate ("we," "our," "us") respects your privacy and is committed to protecting your personal data.
+              Happy Birthday Mate ("we", "our", "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, store, disclose, and safeguard your information when you use our website, mobile services, and related platforms (collectively, the "Service").
             </p>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              This Privacy Policy explains:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>What data we collect</li>
-              <li>Why we collect it</li>
-              <li>How we use and protect it</li>
-              <li>Your rights regarding your data</li>
-            </ul>
             <p className="text-gray-700 leading-relaxed">
-              Happy Birthday Mate is a celebration platform, not a social network or marketplace.
+              By accessing or using Happy Birthday Mate, you agree to the practices described in this Privacy Policy.
             </p>
           </section>
 
@@ -96,143 +84,151 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">2. Information We Collect</h2>
             
-            <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3">A. Information You Provide Directly</h3>
+            <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3">a. Information You Provide</h3>
             <p className="text-gray-700 leading-relaxed mb-4">
-              When you create an account or use the platform, we may collect:
+              We may collect:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>First name</li>
-              <li>Date of birth (day & month used for birthday matching)</li>
-              <li>Gender (optional)</li>
-              <li>Country and state</li>
-              <li>Profile photo</li>
+              <li>Name or username</li>
               <li>Email address</li>
-              <li>Consent confirmation</li>
-            </ul>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              <strong>Optional:</strong>
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>City (non-precise, text only)</li>
+              <li>Date of birth (day and month only, where applicable)</li>
+              <li>Profile photos or uploaded media</li>
+              <li>Messages, posts, and interactions within Birthday Walls or Tribe Rooms</li>
+              <li>Payment-related metadata (transaction references, amounts, status — not card details)</li>
             </ul>
 
-            <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3 mt-6">B. Automatically Collected Information</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Device type and browser (for security and performance)</li>
-              <li>IP address (used only for fraud prevention and regional routing)</li>
-              <li>Basic usage data (e.g., pages visited, feature usage)</li>
-            </ul>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              <strong>We do not collect:</strong>
-            </p>
+            <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3 mt-6">b. Automatically Collected Information</h3>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Exact GPS location</li>
-              <li>Interests or personality profiles</li>
-              <li>Emotional or mental health diagnoses</li>
-              <li>Relationship or contact graphs</li>
+              <li>IP address</li>
+              <li>Device and browser type</li>
+              <li>Usage logs and interaction data</li>
+              <li>Cookies and similar technologies</li>
             </ul>
           </section>
 
           {/* Section 3 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">3. How We Use Your Information</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              We use your information to:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Assign you to your birthday tribe</li>
-              <li>Enable birthday rooms and celebrations</li>
-              <li>Display celebrants (only with consent)</li>
-              <li>Generate personalized birthday messages</li>
-              <li>Improve platform performance and security</li>
-              <li>Comply with legal obligations</li>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">3. Authentication & Account Security</h2>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+              <li>Authentication is handled securely via third-party providers.</li>
+              <li>We do not store passwords.</li>
+              <li>Secure tokens are used to manage sessions.</li>
+              <li>Users are responsible for safeguarding their login credentials.</li>
             </ul>
-            <p className="text-gray-700 leading-relaxed font-semibold">
-              We do not sell personal data.
-            </p>
           </section>
 
           {/* Section 4 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">4. AI Usage</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">4. How We Use Your Information</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Happy Birthday Mate uses AI to:
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Generate personalized birthday quotes</li>
-              <li>Curate joyful celebratory content</li>
-              <li>Detect harmful or abusive content for safety</li>
-            </ul>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              <strong>AI processing:</strong>
+              We use your information to:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Does not profile emotional health</li>
-              <li>Does not make automated decisions about users</li>
-              <li>Is used strictly for celebration and moderation purposes</li>
+              <li>Provide and improve the Service</li>
+              <li>Match users by birthday</li>
+              <li>Enable celebrations, interactions, and digital gifts</li>
+              <li>Process payments and prevent fraud</li>
+              <li>Communicate updates, service notices, or support messages</li>
+              <li>Ensure platform safety, integrity, and compliance</li>
             </ul>
           </section>
 
           {/* Section 5 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">5. Cookies & Tracking</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">5. Payments & Financial Data</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              We use minimal cookies for:
+              Payments on Happy Birthday Mate are processed by third-party payment processors, including Flutterwave.
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Authentication</li>
-              <li>Security</li>
-              <li>Session management</li>
+              <li>We do not collect or store card or bank details.</li>
+              <li>Payment data is handled directly by the payment provider under their own privacy policies.</li>
+              <li>Transaction records may be stored for reconciliation, compliance, and dispute resolution.</li>
             </ul>
+            <p className="text-gray-700 leading-relaxed font-semibold">
+              Merchant Notice:
+            </p>
             <p className="text-gray-700 leading-relaxed">
-              We do not use third-party ad trackers in V1.
+              Payments may appear under our registered business entity name on bank statements.
             </p>
           </section>
 
           {/* Section 6 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">6. Payments</h2>
-            <p className="text-gray-700 leading-relaxed">
-              When payments are enabled:
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">6. Cookies & Tracking</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              We use cookies to:
             </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mt-4">
-              <li>Payments are processed by third-party providers (e.g., Paystack, Flutterwave, Lemon Squeezy)</li>
-              <li>We do not store your card or bank details</li>
-              <li>Payment providers have their own privacy policies.</li>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+              <li>Maintain sessions</li>
+              <li>Improve performance</li>
+              <li>Understand user behavior</li>
             </ul>
+            <p className="text-gray-700 leading-relaxed">
+              You may control cookies through your browser settings.
+            </p>
           </section>
 
           {/* Section 7 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">7. Data Sharing</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">7. Data Sharing & Disclosure</h2>
+            <p className="text-gray-700 leading-relaxed mb-4 font-semibold">
+              We do not sell your personal data.
+            </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              We may share limited data only with:
+              We may share information:
             </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-              <li>Hosting and infrastructure providers</li>
-              <li>Payment processors (when applicable)</li>
-              <li>Legal authorities if required by law</li>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+              <li>With trusted service providers (hosting, analytics, payment processors)</li>
+              <li>To comply with legal obligations</li>
+              <li>To protect the rights, safety, or integrity of users and the platform</li>
             </ul>
-            <p className="text-gray-700 leading-relaxed font-semibold">
-              We never share data for advertising resale.
-            </p>
           </section>
 
           {/* Section 8 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">8. Data Retention</h2>
-            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
-              <li>Account data is retained while your account is active</li>
-              <li>Celebration content is temporary by design</li>
-              <li>You may request account deletion at any time</li>
-            </ul>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">8. International Users</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Happy Birthday Mate is accessible globally. By using the Service, you consent to the transfer and processing of your data across borders in accordance with applicable laws.
+            </p>
           </section>
 
           {/* Section 9 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">9. Your Rights</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">9. Data Security</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Depending on your location, you may have the right to:
+              We apply industry-standard safeguards including:
+            </p>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+              <li>HTTPS/TLS encryption</li>
+              <li>Secure access controls</li>
+              <li>Input validation and abuse prevention</li>
+              <li>Restricted administrative access</li>
+            </ul>
+            <p className="text-gray-700 leading-relaxed">
+              However, no system is 100% immune from risk.
+            </p>
+          </section>
+
+          {/* Section 10 */}
+          <section>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">10. Data Retention</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              We retain personal data only for as long as necessary to:
+            </p>
+            <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+              <li>Provide the Service</li>
+              <li>Meet legal, accounting, or regulatory obligations</li>
+            </ul>
+            <p className="text-gray-700 leading-relaxed">
+              Users may request account deletion where applicable.
+            </p>
+          </section>
+
+          {/* Section 11 */}
+          <section>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">11. Your Rights</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Depending on your location, you may have rights to:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
               <li>Access your data</li>
@@ -241,41 +237,31 @@ export default function PrivacyPolicyPage() {
               <li>Withdraw consent</li>
             </ul>
             <p className="text-gray-700 leading-relaxed">
-              Requests can be made via:
-            </p>
-            <div className="mt-4 flex items-center gap-2 text-primary-600">
-              <Mail className="w-5 h-5" />
-              <a href="mailto:support@happybirthdaymate.com" className="font-semibold hover:underline">
-                support@happybirthdaymate.com
-              </a>
-            </div>
-          </section>
-
-          {/* Section 10 */}
-          <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">10. Children's Privacy</h2>
-            <p className="text-gray-700 leading-relaxed">
-              Happy Birthday Mate may be used by minors with parental or guardian consent.
-            </p>
-            <p className="text-gray-700 leading-relaxed mt-4">
-              We do not knowingly collect data from children without consent.
-            </p>
-          </section>
-
-          {/* Section 11 */}
-          <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">11. Changes to This Policy</h2>
-            <p className="text-gray-700 leading-relaxed">
-              We may update this Privacy Policy from time to time.
-              Material changes will be communicated clearly on the platform.
+              Requests can be made via our support contact.
             </p>
           </section>
 
           {/* Section 12 */}
           <section>
-            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">12. Contact Us</h2>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">12. Children's Privacy</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Happy Birthday Mate is not intended for children under 13. We do not knowingly collect data from minors.
+            </p>
+          </section>
+
+          {/* Section 13 */}
+          <section>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">13. Changes to This Policy</h2>
+            <p className="text-gray-700 leading-relaxed">
+              We may update this Privacy Policy periodically. Changes will be posted on this page with an updated revision date.
+            </p>
+          </section>
+
+          {/* Section 14 */}
+          <section>
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text mb-4">14. Contact</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              For privacy questions:
+              For privacy-related inquiries, contact:
             </p>
             <div className="flex items-center gap-2 text-primary-600">
               <Mail className="w-5 h-5" />
