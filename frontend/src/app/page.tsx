@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { adminAPI, userAPI } from '@/lib/api';
 import { Gift, Users, Sparkles, Calendar, Heart } from 'lucide-react';
@@ -388,11 +389,45 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className={`py-12 px-4 border-t border-gray-200 ${isMobile ? 'pb-24' : ''}`}>
-        <div className="max-w-7xl mx-auto text-center text-gray-600">
-          <p>&copy; 2025 Happy Birthday Mate. All rights reserved.</p>
-          <p className="mt-2 text-sm">
-            A platform where birthdays become rituals, not just dates. 🎉
-          </p>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3">Platform</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><Link href="/help" className="hover:text-primary-600 transition-colors">Help Center</Link></li>
+                <li><Link href="/faq" className="hover:text-primary-600 transition-colors">FAQ</Link></li>
+                <li><Link href="/contact" className="hover:text-primary-600 transition-colors">Contact Us</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3">Features</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><a href="/#features" className="hover:text-primary-600 transition-colors">Birthday Walls</a></li>
+                <li><a href="/#features" className="hover:text-primary-600 transition-colors">Birthday Tribes</a></li>
+                <li><a href="/#features" className="hover:text-primary-600 transition-colors">Digital Gifts</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3">Legal</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><Link href="/privacy" className="hover:text-primary-600 transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-primary-600 transition-colors">Terms of Service</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 mb-3">About</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><Link href="/about" className="hover:text-primary-600 transition-colors">About Us</Link></li>
+                <li><a href="mailto:support@happybirthdaymate.com" className="hover:text-primary-600 transition-colors">support@happybirthdaymate.com</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="text-center text-gray-600 border-t border-gray-200 pt-8">
+            <p>&copy; 2025 Happy Birthday Mate. All rights reserved.</p>
+            <p className="mt-2 text-sm">
+              A platform where birthdays become rituals, not just dates. 🎉
+            </p>
+          </div>
         </div>
       </footer>
       

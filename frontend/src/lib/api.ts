@@ -61,6 +61,8 @@ export const userAPI = {
     api.get(`/users/tribe/${tribeId}/members`, { 
       params: { limit, random_sample: randomSample } 
     }),
+  submitContactForm: (data: { name: string; email: string; subject: string; message: string; user_id?: number }) =>
+    api.post('/users/contact', data),
 };
 
 // Tribe endpoints

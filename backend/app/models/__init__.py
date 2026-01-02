@@ -4,6 +4,7 @@ from app.models.birthday_wall import BirthdayWall, WallPhoto, PhotoReaction, Wal
 from app.models.gift import Gift, GiftCatalog, GiftTypeEnum, PaymentProviderEnum
 from app.models.buddy import BirthdayBuddy, CelebrantVisibility
 from app.models.admin import ModerationLog, FlaggedContent, Celebrity, ModerationActionEnum, ContentTypeEnum
+from app.models.contact import ContactSubmission
 
 __all__ = [
     "User",
@@ -29,5 +30,6 @@ __all__ = [
     "Celebrity",
     "ModerationActionEnum",
     "ContentTypeEnum",
+    "ContactSubmission",
 ]
 

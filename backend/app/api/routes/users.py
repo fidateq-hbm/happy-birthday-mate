@@ -5,7 +5,7 @@ from datetime import datetime, date
 from typing import Optional
 
 from app.core.database import get_db
-from app.models import User
+from app.models import User, ContactSubmission
 
 router = APIRouter()
 
@@ -149,5 +149,52 @@ async def get_tribe_members(
             }
             for m in members
         ]
+    }
+
+
+class ContactFormRequest(BaseModel):
+    name: str
+    email: str
+    subject: str
+    message: str
+    user_id: Optional[int] = None
+
+
+@router.post("/contact")
+async def submit_contact_form(
+    request: ContactFormRequest,
+    db: Session = Depends(get_db)
+):
+    """Submit a contact form message"""
+    
+    # Validate subject
+    valid_subjects = ['account', 'technical', 'feature', 'feedback', 'gift', 'wall', 'tribe', 'other']
+    if request.subject not in valid_subjects:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid subject. Must be one of: {', '.join(valid_subjects)}"
+        )
+    
+    # Create contact submission
+    submission = ContactSubmission(
+        name=request.name,
+        email=request.email,
+        subject=request.subject,
+        message=request.message,
+        user_id=request.user_id,
+        status="pending"
+    )
+    
+    db.add(submission)
+    db.commit()
+    db.refresh(submission)
+    
+    # TODO: Send email notification to support team
+    # TODO: Send auto-reply confirmation email to user
+    
+    return {
+        "message": "Contact form submitted successfully",
+        "submission_id": submission.id,
+        "status": "pending"
     }
 
