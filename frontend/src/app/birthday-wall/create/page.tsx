@@ -70,32 +70,45 @@ export default function CreateBirthdayWallPage() {
     }
   }, [user, loading, router]);
 
-  // Check for existing wall on mount
+  // Check for existing wall on mount (only once)
   useEffect(() => {
+    let isMounted = true;
+    
     const checkExistingWall = async () => {
-      if (!user) return;
+      if (!user || loading) return;
       
       setCheckingExisting(true);
       try {
         const response = await roomAPI.getUserBirthdayWall(user.id);
         // Wall exists - redirect to it
-        toast.success('You already have a birthday wall! Redirecting...');
-        router.push(`/birthday-wall/${response.data.public_url_code}`);
+        if (isMounted) {
+          toast.success('You already have a birthday wall! Redirecting...');
+          router.push(`/birthday-wall/${response.data.public_url_code}`);
+        }
       } catch (error: any) {
         // No existing wall - allow creation
-        if (error.response?.status === 404) {
-          setCheckingExisting(false);
-        } else {
-          console.error('Error checking existing wall:', error);
-          setCheckingExisting(false);
+        if (isMounted) {
+          if (error.response?.status === 404) {
+            setCheckingExisting(false);
+          } else {
+            console.error('Error checking existing wall:', error);
+            setCheckingExisting(false);
+          }
         }
       }
     };
 
     if (user && !loading) {
       checkExistingWall();
+    } else if (!loading && !user) {
+      // User not loaded and not loading - stop checking
+      setCheckingExisting(false);
     }
-  }, [user, loading, router]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, loading]); // Only depend on user.id and loading, not the whole user object or router
 
   const handleCreate = async () => {
     if (!user) return;
