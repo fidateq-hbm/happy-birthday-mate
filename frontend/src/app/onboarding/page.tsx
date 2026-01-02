@@ -87,7 +87,8 @@ export default function OnboardingPage() {
 
   const uploadProfilePicture = async (): Promise<string> => {
     if (!profilePicture || !firebaseUser) {
-      throw new Error('Profile picture is required. Please select an image.');
+      // Return fallback avatar if no picture selected
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName || 'User')}&background=6366f1&color=fff&size=200&bold=true`;
     }
 
     // Upload to Firebase Storage during onboarding (before user exists in backend)
@@ -99,7 +100,9 @@ export default function OnboardingPage() {
       return downloadURL;
     } catch (error) {
       console.error('Upload error:', error);
-      throw new Error('Failed to upload profile picture. Please try again.');
+      // If upload fails, use fallback avatar instead of blocking onboarding
+      console.warn('Profile picture upload failed, using fallback avatar');
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName || 'User')}&background=6366f1&color=fff&size=200&bold=true`;
     }
   };
 
@@ -109,8 +112,15 @@ export default function OnboardingPage() {
     setLoading(true);
 
     try {
-      // Upload profile picture
-      const profilePictureUrl = await uploadProfilePicture();
+      // Upload profile picture (with fallback if it fails)
+      let profilePictureUrl: string;
+      try {
+        profilePictureUrl = await uploadProfilePicture();
+      } catch (uploadError) {
+        // If upload fails, use fallback avatar
+        console.warn('Profile picture upload failed, using fallback:', uploadError);
+        profilePictureUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName || 'User')}&background=6366f1&color=fff&size=200&bold=true`;
+      }
 
       // Submit to backend
       const response = await authAPI.signup({
@@ -130,13 +140,13 @@ export default function OnboardingPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Onboarding error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to complete onboarding');
+      toast.error(error.response?.data?.detail || error.message || 'Failed to complete onboarding');
     } finally {
       setLoading(false);
     }
   };
 
-  const canProceedStep1 = firstName && dateOfBirth && gender && profilePicture;
+  const canProceedStep1 = firstName && dateOfBirth && gender; // Profile picture is optional
   const canProceedStep2 = country && state;
   const canSubmit = canProceedStep1 && canProceedStep2 && consentGiven;
 
@@ -189,7 +199,7 @@ export default function OnboardingPage() {
                 {/* Profile Picture */}
                 <div className="flex flex-col items-center">
                   <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
-                    Profile Picture *
+                    Profile Picture (Optional)
                   </label>
                   <p className="text-xs text-gray-500 mb-4 text-center">
                     Your photo helps your birthday mates recognize and connect with you
@@ -213,12 +223,11 @@ export default function OnboardingPage() {
                         accept="image/*"
                         onChange={handleProfilePictureChange}
                         className="hidden"
-                        required
                       />
                     </label>
                   </div>
                   {!profilePicture && (
-                    <p className="text-xs text-red-500 mt-2">Profile picture is required</p>
+                    <p className="text-xs text-gray-500 mt-2">You can add a profile picture later in settings</p>
                   )}
                 </div>
 
