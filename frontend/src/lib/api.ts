@@ -65,21 +65,18 @@ export const userAPI = {
     api.post('/users/contact', data),
 };
 
-// Tribe endpoints
+// Tribe endpoints - All use Authorization header from interceptor
 export const tribeAPI = {
   getTribeInfo: (tribeId: string) => api.get(`/tribes/${tribeId}`),
-  getTribeRoom: (tribeId: string, userId: number) => 
-    api.get(`/tribes/${tribeId}/room`, { params: { user_id: userId } }),
-  sendMessage: (tribeId: string, roomId: number, message: string, userId: number) =>
-    api.post(`/tribes/${tribeId}/room/${roomId}/messages`, { message, user_id: userId }),
-  getMessages: (tribeId: string, roomId: number, userId: number, limit?: number) =>
-    api.get(`/tribes/${tribeId}/room/${roomId}/messages`, { 
-      params: { user_id: userId, limit } 
-    }),
-  editMessage: (tribeId: string, roomId: number, messageId: number, message: string, userId: number) =>
-    api.put(`/tribes/${tribeId}/room/${roomId}/messages/${messageId}`, { message, user_id: userId }),
-  deleteMessage: (tribeId: string, roomId: number, messageId: number, userId: number) =>
-    api.delete(`/tribes/${tribeId}/room/${roomId}/messages/${messageId}`, { params: { user_id: userId } }),
+  getTribeRoom: (tribeId: string) => api.get(`/tribes/${tribeId}/room`), // user_id from token
+  sendMessage: (tribeId: string, roomId: number, message: string) =>
+    api.post(`/tribes/${tribeId}/room/${roomId}/messages`, { message }), // user_id from token
+  getMessages: (tribeId: string, roomId: number, limit?: number) =>
+    api.get(`/tribes/${tribeId}/room/${roomId}/messages`, { params: { limit } }), // user_id from token
+  editMessage: (tribeId: string, roomId: number, messageId: number, message: string) =>
+    api.put(`/tribes/${tribeId}/room/${roomId}/messages/${messageId}`, { message }), // user_id from token
+  deleteMessage: (tribeId: string, roomId: number, messageId: number) =>
+    api.delete(`/tribes/${tribeId}/room/${roomId}/messages/${messageId}`), // user_id from token
 };
 
 // Room endpoints

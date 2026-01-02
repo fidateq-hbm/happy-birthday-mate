@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
 from pydantic import BaseModel
@@ -6,6 +6,8 @@ from typing import Optional
 import secrets
 
 from app.core.database import get_db
+from app.core.auth import get_current_user
+from app.core.security import limiter, sanitize_input
 from app.models import Room, RoomParticipant, Message, User, RoomTypeEnum, BirthdayWall, WallPhoto, WallThemeEnum, PhotoReaction, BackgroundAnimationEnum
 
 router = APIRouter()
@@ -35,15 +37,18 @@ class AddPhotoReactionRequest(BaseModel):
 
 
 @router.post("/personal")
+@limiter.limit("10/hour")  # Rate limit room creation
 async def create_personal_birthday_room(
-    request: CreatePersonalRoomRequest,
-    user_id: int,
+    request: Request,
+    room_data: CreatePersonalRoomRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Create personal birthday room (only available on birthday day)
+    Requires authentication
     """
-    user = db.query(User).filter(User.id == user_id).first()
+    user = current_user
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -63,7 +68,7 @@ async def create_personal_birthday_room(
     # Check if room already exists for today
     existing_room = db.query(Room).filter(
         Room.room_type == RoomTypeEnum.PERSONAL,
-        Room.owner_id == user_id,
+        Room.owner_id == user.id,
         Room.opens_at >= datetime.combine(today, datetime.min.time())
     ).first()
     
@@ -74,6 +79,9 @@ async def create_personal_birthday_room(
             "message": "Room already exists"
         }
     
+    # Sanitize room name if provided
+    room_name = sanitize_input(room_data.name, max_length=100) if room_data.name else None
+    
     # Create room
     opens_at = datetime.combine(today, datetime.min.time())
     closes_at = datetime.combine(today, datetime.max.time())
@@ -81,7 +89,7 @@ async def create_personal_birthday_room(
     
     room = Room(
         room_type=RoomTypeEnum.PERSONAL,
-        room_identifier=f"personal_{user_id}_{today.isoformat()}",
+        room_identifier=f"personal_{user.id}_{today.isoformat()}",
         name=request.name or f"{user.first_name}'s Birthday Celebration",
         opens_at=opens_at,
         closes_at=closes_at,

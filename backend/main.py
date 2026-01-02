@@ -1,12 +1,14 @@
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from pathlib import Path
 from dotenv import load_dotenv
 import logging
 
 from app.core.config import settings
+from app.core.security import limiter, RateLimitExceeded, _rate_limit_exceeded_handler
 from app.api.routes import auth, users, tribes, rooms, gifts, admin, upload, buddy, ai
 
 load_dotenv()
@@ -98,41 +100,87 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Happy Birthday Mate API",
-    description="A global, ritual-based digital celebration platform",
+    description="A global celebration platform",
     version="1.0.0",
     lifespan=lifespan
 )
 
+# Add rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# CORS
+# CORS - Strict configuration for security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.ALLOWED_ORIGINS,  # Only allow configured origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],  # Specific methods only
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+    ],  # Specific headers only
+    expose_headers=["Content-Length", "Content-Type"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
-# Custom middleware to suppress expected 404 logs for /api/auth/me
-# (404s are expected for users who haven't completed onboarding)
+# Security headers middleware
 @app.middleware("http")
-async def suppress_expected_404s(request: Request, call_next):
+async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     
+    # Add security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
+    # Content Security Policy (adjust based on your needs)
+    csp = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "  # Adjust for your needs
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data:; "
+        "connect-src 'self' https://*.googleapis.com https://*.firebase.com; "
+        "frame-ancestors 'none';"
+    )
+    response.headers["Content-Security-Policy"] = csp
+    
     # Suppress logging for expected 404s on /api/auth/me
-    # These are normal for users who haven't completed onboarding
     if (
         response.status_code == status.HTTP_404_NOT_FOUND
         and request.url.path == "/api/auth/me"
     ):
         # Don't log these - they're expected behavior
         pass
-    else:
-        # Log other requests normally
-        pass
     
+    return response
+
+# HTTPS enforcement middleware (for production)
+@app.middleware("http")
+async def enforce_https(request: Request, call_next):
+    # Only enforce in production
+    from app.core.config import IS_PRODUCTION
+    if IS_PRODUCTION:
+        # Check if request is over HTTPS (via proxy headers)
+        forwarded_proto = request.headers.get("x-forwarded-proto", "")
+        if forwarded_proto != "https":
+            # Allow health checks and docs over HTTP
+            if request.url.path not in ["/health", "/docs", "/openapi.json", "/"]:
+                return JSONResponse(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    content={"detail": "HTTPS required in production"}
+                )
+    
+    response = await call_next(request)
     return response
 
 # Routes

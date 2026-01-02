@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 # Load .env file
 load_dotenv()
 
+# Environment detection
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
 
 class Settings(BaseSettings):
     # Database

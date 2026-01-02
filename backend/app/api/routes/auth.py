@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from datetime import date, datetime
 from typing import Optional
 import firebase_admin
@@ -9,6 +9,7 @@ import os
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
+from app.core.security import limiter, sanitize_input
 from app.models import User, GenderEnum
 from app.core.config import settings
 
@@ -44,6 +45,18 @@ class SignupRequest(BaseModel):
     city: Optional[str] = None
     profile_picture_url: str
     consent_given: bool
+    
+    @validator('first_name', 'country', 'state', 'city')
+    def sanitize_strings(cls, v):
+        if v:
+            return sanitize_input(str(v), max_length=100)
+        return v
+    
+    @validator('firebase_uid')
+    def validate_firebase_uid(cls, v):
+        if not v or len(v) < 10 or len(v) > 200:
+            raise ValueError('Invalid firebase_uid')
+        return v
 
 
 class UserResponse(BaseModel):
@@ -69,14 +82,16 @@ class UserResponse(BaseModel):
 
 
 @router.post("/signup", response_model=UserResponse)
-async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")  # Rate limit signups
+async def signup(request: Request, signup_data: SignupRequest, db: Session = Depends(get_db)):
     """
     Register a new user with complete onboarding data.
     Birthday Tribe is automatically assigned based on MM-DD.
     """
+    request_data = signup_data
     
     # Check if user already exists
-    existing_user = db.query(User).filter(User.firebase_uid == request.firebase_uid).first()
+    existing_user = db.query(User).filter(User.firebase_uid == request_data.firebase_uid).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -84,32 +99,32 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
         )
     
     # Check consent
-    if not request.consent_given:
+    if not request_data.consent_given:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Consent must be given to create an account"
         )
     
     # Extract month and day for tribe assignment
-    birth_month = request.date_of_birth.month
-    birth_day = request.date_of_birth.day
+    birth_month = request_data.date_of_birth.month
+    birth_day = request_data.date_of_birth.day
     tribe_id = f"{birth_month:02d}-{birth_day:02d}"
     
     # Create user
     new_user = User(
-        firebase_uid=request.firebase_uid,
-        email=request.email,
-        first_name=request.first_name,
-        date_of_birth=request.date_of_birth,
-        gender=request.gender,
-        country=request.country,
-        state=request.state,
-        city=request.city,
-        profile_picture_url=request.profile_picture_url,
+        firebase_uid=request_data.firebase_uid,
+        email=request_data.email,
+        first_name=request_data.first_name,
+        date_of_birth=request_data.date_of_birth,
+        gender=request_data.gender,
+        country=request_data.country,
+        state=request_data.state,
+        city=request_data.city,
+        profile_picture_url=request_data.profile_picture_url,
         birth_month=birth_month,
         birth_day=birth_day,
         tribe_id=tribe_id,
-        consent_given=request.consent_given,
+        consent_given=request_data.consent_given,
         is_verified=True,
     )
     

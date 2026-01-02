@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from datetime import datetime, date
 from typing import Optional
 
 from app.core.database import get_db
 from app.core.auth import get_current_user, get_optional_user
+from app.core.security import limiter, sanitize_input
 from app.models import User, ContactSubmission
 
 router = APIRouter()
@@ -15,6 +16,12 @@ class UpdateProfileRequest(BaseModel):
     first_name: Optional[str] = None
     city: Optional[str] = None
     state_visibility_enabled: Optional[bool] = None
+    
+    @validator('first_name', 'city')
+    def sanitize_strings(cls, v):
+        if v:
+            return sanitize_input(str(v), max_length=100)
+        return v
 
 
 class UpdateProfilePictureRequest(BaseModel):
@@ -64,9 +71,11 @@ async def get_user_profile(
 
 
 @router.patch("/{user_id}")
+@limiter.limit("30/minute")  # Rate limit profile updates
 async def update_user_profile(
+    request: Request,
     user_id: int,
-    request: UpdateProfileRequest,
+    profile_data: UpdateProfileRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -85,25 +94,25 @@ async def update_user_profile(
             detail="User not found"
         )
     
-    # Validate input
-    if request.first_name is not None:
-        if len(request.first_name.strip()) < 1 or len(request.first_name) > 100:
+    # Validate and sanitize input
+    if profile_data.first_name is not None:
+        if len(profile_data.first_name.strip()) < 1 or len(profile_data.first_name) > 100:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="First name must be between 1 and 100 characters"
             )
-        user.first_name = request.first_name.strip()
+        user.first_name = profile_data.first_name.strip()
     
-    if request.city is not None:
-        if len(request.city) > 100:
+    if profile_data.city is not None:
+        if len(profile_data.city) > 100:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="City name too long"
             )
-        user.city = request.city.strip() if request.city else None
+        user.city = profile_data.city.strip() if profile_data.city else None
     
-    if request.state_visibility_enabled is not None:
-        user.state_visibility_enabled = request.state_visibility_enabled
+    if profile_data.state_visibility_enabled is not None:
+        user.state_visibility_enabled = profile_data.state_visibility_enabled
     
     user.updated_at = datetime.utcnow()
     db.commit()
@@ -216,18 +225,26 @@ class ContactFormRequest(BaseModel):
     subject: str
     message: str
     user_id: Optional[int] = None
+    
+    @validator('name', 'subject', 'message')
+    def sanitize_strings(cls, v):
+        if v:
+            return sanitize_input(str(v), max_length=1000)
+        return v
 
 
 @router.post("/contact")
+@limiter.limit("5/hour")  # Rate limit contact form submissions
 async def submit_contact_form(
-    request: ContactFormRequest,
+    request: Request,
+    form_data: ContactFormRequest,
     db: Session = Depends(get_db)
 ):
     """Submit a contact form message"""
     
     # Validate subject
     valid_subjects = ['account', 'technical', 'feature', 'feedback', 'gift', 'wall', 'tribe', 'other']
-    if request.subject not in valid_subjects:
+    if form_data.subject not in valid_subjects:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid subject. Must be one of: {', '.join(valid_subjects)}"
@@ -235,11 +252,11 @@ async def submit_contact_form(
     
     # Create contact submission
     submission = ContactSubmission(
-        name=request.name,
-        email=request.email,
-        subject=request.subject,
-        message=request.message,
-        user_id=request.user_id,
+        name=form_data.name,
+        email=form_data.email,
+        subject=form_data.subject,
+        message=form_data.message,
+        user_id=form_data.user_id,
         status="pending"
     )
     

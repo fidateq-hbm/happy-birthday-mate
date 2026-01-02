@@ -91,7 +91,7 @@ export default function TribeRoomPage() {
   const fetchMessages = async () => {
     if (!user) return;
     try {
-      const response = await tribeAPI.getMessages(tribeId, roomId, user.id, 100);
+      const response = await tribeAPI.getMessages(tribeId, roomId, 100);
       // Remove duplicates by message ID to prevent duplicate messages
       const uniqueMessages = response.data.messages.filter((msg: Message, index: number, self: Message[]) => 
         index === self.findIndex((m: Message) => m.id === msg.id)
@@ -112,7 +112,7 @@ export default function TribeRoomPage() {
 
     setSending(true);
     try {
-      await tribeAPI.sendMessage(tribeId, roomId, newMessage, user.id);
+      await tribeAPI.sendMessage(tribeId, roomId, newMessage);
       setNewMessage('');
       fetchMessages();
     } catch (error: any) {
@@ -159,7 +159,7 @@ export default function TribeRoomPage() {
     if (!user || !editContent.trim()) return;
 
     try {
-      const response = await tribeAPI.editMessage(tribeId, roomId, messageId, editContent, user.id);
+      const response = await tribeAPI.editMessage(tribeId, roomId, messageId, editContent);
       // Update the message in local state instead of refetching
       setMessages(prevMessages => 
         prevMessages.map(msg => 
@@ -191,7 +191,7 @@ export default function TribeRoomPage() {
 
     setDeletingMessageId(messageId);
     try {
-      await tribeAPI.deleteMessage(tribeId, roomId, messageId, user.id);
+      await tribeAPI.deleteMessage(tribeId, roomId, messageId);
       // Remove the message from local state instead of refetching
       setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
       toast.success('Message deleted');

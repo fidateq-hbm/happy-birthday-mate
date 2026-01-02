@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
 from typing import List
 from pydantic import BaseModel
 
 from app.core.database import get_db
+from app.core.auth import get_current_user
+from app.core.security import limiter, sanitize_input
 from app.models import User, Room, RoomParticipant, Message, RoomTypeEnum
 
 router = APIRouter()
@@ -51,15 +53,22 @@ async def get_tribe_info(tribe_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{tribe_id}/room")
-async def get_tribe_room(tribe_id: str, user_id: int, db: Session = Depends(get_db)):
+@limiter.limit("30/minute")  # Rate limit
+async def get_tribe_room(
+    request: Request,
+    tribe_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Get or create the birthday tribe room.
     Only accessible on the birthday day.
+    Requires authentication.
     """
     
     # Verify user belongs to this tribe
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user or user.tribe_id != tribe_id:
+    user = current_user
+    if user.tribe_id != tribe_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't belong to this tribe"
@@ -103,13 +112,13 @@ async def get_tribe_room(tribe_id: str, user_id: int, db: Session = Depends(get_
     # Add user as participant if not already
     participant = db.query(RoomParticipant).filter(
         RoomParticipant.room_id == room.id,
-        RoomParticipant.user_id == user_id
+        RoomParticipant.user_id == user.id
     ).first()
     
     if not participant:
         participant = RoomParticipant(
             room_id=room.id,
-            user_id=user_id,
+            user_id=user.id,
             is_birthday_mate=True
         )
         db.add(participant)
@@ -125,17 +134,25 @@ async def get_tribe_room(tribe_id: str, user_id: int, db: Session = Depends(get_
 
 class SendTribeMessageRequest(BaseModel):
     message: str
-    user_id: int
+    
+    @validator('message')
+    def sanitize_message(cls, v):
+        if v:
+            return sanitize_input(str(v), max_length=1000)
+        return v
 
 
 @router.post("/{tribe_id}/room/{room_id}/messages")
+@limiter.limit("60/minute")  # Rate limit messages
 async def send_tribe_message(
+    request: Request,
     tribe_id: str,
     room_id: int,
-    request: SendTribeMessageRequest,
+    message_data: SendTribeMessageRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Send a message in the tribe room (text only)"""
+    """Send a message in the tribe room (text only) - requires authentication"""
     
     # Verify room exists and is active
     room = db.query(Room).filter(Room.id == room_id).first()
@@ -154,7 +171,7 @@ async def send_tribe_message(
     # Verify user is participant
     participant = db.query(RoomParticipant).filter(
         RoomParticipant.room_id == room_id,
-        RoomParticipant.user_id == request.user_id
+        RoomParticipant.user_id == current_user.id
     ).first()
     
     if not participant:
@@ -166,8 +183,8 @@ async def send_tribe_message(
     # Create message
     new_message = Message(
         room_id=room_id,
-        user_id=request.user_id,
-        content=request.message
+        user_id=current_user.id,
+        content=message_data.message
     )
     db.add(new_message)
     db.commit()
@@ -181,19 +198,21 @@ async def send_tribe_message(
 
 
 @router.get("/{tribe_id}/room/{room_id}/messages")
+@limiter.limit("100/minute")  # Rate limit message fetching
 async def get_tribe_messages(
+    request: Request,
     tribe_id: str,
     room_id: int,
-    user_id: int,
     limit: int = 100,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get messages from tribe room"""
+    """Get messages from tribe room - requires authentication"""
     
     # Verify user is participant
     participant = db.query(RoomParticipant).filter(
         RoomParticipant.room_id == room_id,
-        RoomParticipant.user_id == user_id
+        RoomParticipant.user_id == current_user.id
     ).first()
     
     if not participant:
@@ -224,14 +243,17 @@ async def get_tribe_messages(
 
 
 @router.put("/{tribe_id}/room/{room_id}/messages/{message_id}")
+@limiter.limit("30/minute")  # Rate limit edits
 async def edit_tribe_message(
+    request: Request,
     tribe_id: str,
     room_id: int,
     message_id: int,
-    request: SendTribeMessageRequest,
+    message_data: SendTribeMessageRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Edit a message in the tribe room (only by the sender)"""
+    """Edit a message in the tribe room (only by the sender) - requires authentication"""
     
     # Get the message
     message = db.query(Message).filter(Message.id == message_id).first()
@@ -249,7 +271,7 @@ async def edit_tribe_message(
         )
     
     # Verify user is the sender
-    if message.user_id != request.user_id:
+    if message.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only edit your own messages"
@@ -271,7 +293,7 @@ async def edit_tribe_message(
         )
     
     # Update message
-    message.content = request.message
+    message.content = message_data.message
     message.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(message)
