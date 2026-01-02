@@ -21,9 +21,10 @@ def upgrade():
     op.add_column('birthday_walls', sa.Column('birthday_year', sa.Integer(), nullable=True))
     
     # Set birthday_year for existing walls based on opens_at date
+    # opens_at is 24h before birthday, so birthday is opens_at + 1 day
     op.execute("""
         UPDATE birthday_walls 
-        SET birthday_year = EXTRACT(YEAR FROM opens_at + INTERVAL '1 day')
+        SET birthday_year = EXTRACT(YEAR FROM opens_at + INTERVAL '1 day')::INTEGER
         WHERE birthday_year IS NULL
     """)
     

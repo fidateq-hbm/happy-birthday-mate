@@ -60,6 +60,7 @@ class UserResponse(BaseModel):
     profile_picture_url: str
     tribe_id: str
     state_visibility_enabled: bool
+    is_admin: bool = False
     created_at: datetime
     
     class Config:
