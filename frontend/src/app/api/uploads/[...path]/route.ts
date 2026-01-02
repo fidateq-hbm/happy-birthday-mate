@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+/**
+ * Proxy endpoint to serve uploaded images from the backend
+ * This ensures images are served from the same HTTPS domain as the frontend
+ * to avoid mixed content issues
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  try {
+    const pathSegments = params.path || [];
+    const imagePath = pathSegments.join('/');
+    
+    if (!imagePath) {
+      return NextResponse.json(
+        { error: 'Image path is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get backend API URL
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    
+    // Construct backend URL
+    const backendUrl = `${apiUrl}/uploads/${imagePath}`;
+    
+    // Fetch image from backend
+    const response = await fetch(backendUrl, {
+      headers: {
+        // Forward any authorization if needed
+        ...(request.headers.get('authorization') && {
+          Authorization: request.headers.get('authorization')!,
+        }),
+      },
+    });
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Image not found' },
+        { status: response.status }
+      );
+    }
+
+    // Get image data
+    const imageBuffer = await response.arrayBuffer();
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+
+    // Return image with proper headers
+    return new NextResponse(imageBuffer, {
+      status: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=31536000, immutable', // Cache for 1 year
+      },
+    });
+  } catch (error) {
+    console.error('Error proxying image:', error);
+    return NextResponse.json(
+      { error: 'Failed to load image' },
+      { status: 500 }
+    );
+  }
+}
+
