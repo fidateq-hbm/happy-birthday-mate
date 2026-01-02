@@ -12,6 +12,7 @@ import { MobileAppHeader } from '@/components/MobileAppHeader';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import BirthdayWallBackground from '@/components/BirthdayWallBackground';
 import { ReportContentModal } from '@/components/ReportContentModal';
+import { normalizeImageUrl } from '@/utils/images';
 
 interface Photo {
   id: number;
@@ -508,9 +509,16 @@ export default function BirthdayWallPage() {
                   <div className={`glass-effect rounded-2xl hover:shadow-xl transition-all ${isMobile ? 'p-2 mb-4' : 'p-2'} ${getFrameClass(photo.frame_style || 'none')}`}>
                     <div className={`${getFrameWrapperClass(photo.frame_style || 'none')}`}>
                       <img
-                        src={photo.photo_url}
+                        src={normalizeImageUrl(photo.photo_url)}
                         alt={photo.caption || 'Birthday memory'}
-                        className={`w-full object-cover ${getFrameImageClass(photo.frame_style || 'none')} ${isMobile ? 'max-h-64' : ''}`}
+                        className={`w-full h-auto object-cover ${getFrameImageClass(photo.frame_style || 'none')} ${isMobile ? 'max-h-64' : ''}`}
+                        loading="lazy"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/400x300?text=Photo+Not+Available';
+                          target.onerror = null; // Prevent infinite loop
+                        }}
                       />
                     </div>
                     {photo.caption && (
