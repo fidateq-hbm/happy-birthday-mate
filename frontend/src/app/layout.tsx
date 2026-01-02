@@ -3,10 +3,37 @@ import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import ToasterProvider from "@/components/ToasterProvider";
+import { StructuredData } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Happy Birthday Mate - Celebrate Together",
-  description: "A global celebration platform where no one celebrates alone",
+  metadataBase: new URL('https://www.happybirthdaymate.com'),
+  title: {
+    default: "Happy Birthday Mate - Celebrate Together",
+    template: "%s | Happy Birthday Mate",
+  },
+  description: "A global celebration platform where no one celebrates alone. Connect with birthday mates, celebrate in tribe rooms, create birthday walls, and send digital gifts.",
+  keywords: [
+    'birthday',
+    'birthday celebration',
+    'birthday platform',
+    'birthday tribe',
+    'birthday mates',
+    'celebrate birthday',
+    'digital birthday',
+    'birthday wall',
+    'birthday gifts',
+    'birthday community',
+    'global birthday',
+    'birthday connection',
+  ],
+  authors: [{ name: 'Happy Birthday Mate' }],
+  creator: 'Happy Birthday Mate',
+  publisher: 'Happy Birthday Mate',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   manifest: '/manifest.json',
   themeColor: '#667eea',
   icons: {
@@ -28,6 +55,50 @@ export const metadata: Metadata = {
     userScalable: false,
     viewportFit: 'cover',
   },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://www.happybirthdaymate.com',
+    siteName: 'Happy Birthday Mate',
+    title: 'Happy Birthday Mate - Celebrate Together',
+    description: 'A global celebration platform where no one celebrates alone. Connect with birthday mates, celebrate in tribe rooms, create birthday walls, and send digital gifts.',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Happy Birthday Mate - Celebrate Together',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Happy Birthday Mate - Celebrate Together',
+    description: 'A global celebration platform where no one celebrates alone. Connect with birthday mates and celebrate together!',
+    images: ['/og-image.jpg'],
+    creator: '@happybirthdaymate',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    // Add your verification codes here when available
+    // google: 'your-google-verification-code',
+    // yandex: 'your-yandex-verification-code',
+    // bing: 'your-bing-verification-code',
+  },
+  alternates: {
+    canonical: 'https://www.happybirthdaymate.com',
+  },
+  category: 'social',
 };
 
 export default function RootLayout({
@@ -64,6 +135,41 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/favicon.svg" />
       </head>
       <body>
+        <StructuredData
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Happy Birthday Mate',
+            url: 'https://www.happybirthdaymate.com',
+            logo: 'https://www.happybirthdaymate.com/favicon.svg',
+            description: 'A global celebration platform where no one celebrates alone',
+            sameAs: [
+              // Add social media links when available
+            ],
+            contactPoint: {
+              '@type': 'ContactPoint',
+              email: 'support@happybirthdaymate.com',
+              contactType: 'Customer Service',
+            },
+          }}
+        />
+        <StructuredData
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Happy Birthday Mate',
+            url: 'https://www.happybirthdaymate.com',
+            description: 'A global celebration platform where no one celebrates alone',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://www.happybirthdaymate.com/help?search={search_term_string}',
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          }}
+        />
         <PWAInstallPrompt />
         <AuthProvider>
           {children}

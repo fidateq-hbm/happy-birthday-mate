@@ -1,0 +1,23 @@
+OG IMAGE PLACEHOLDER
+===================
+
+This file is a placeholder. You need to create an actual Open Graph image.
+
+Recommended specifications:
+- Size: 1200x630 pixels
+- Format: JPG or PNG
+- File name: og-image.jpg or og-image.png
+- Location: frontend/public/og-image.jpg
+
+The image should include:
+- Happy Birthday Mate logo/branding
+- Tagline: "Celebrate Together"
+- Visual elements that represent celebration
+
+You can create this using:
+- Design tools (Figma, Canva, Photoshop)
+- Online OG image generators
+- Or hire a designer
+
+Once created, place it in frontend/public/ and update the metadata references if using a different filename.
+
