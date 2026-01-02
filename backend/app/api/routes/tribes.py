@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
 from typing import List
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.core.database import get_db
 from app.core.auth import get_current_user
@@ -135,7 +135,8 @@ async def get_tribe_room(
 class SendTribeMessageRequest(BaseModel):
     message: str
     
-    @validator('message')
+    @field_validator('message')
+    @classmethod
     def sanitize_message(cls, v):
         if v:
             return sanitize_input(str(v), max_length=1000)

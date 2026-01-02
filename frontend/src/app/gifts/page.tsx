@@ -37,7 +37,7 @@ export default function GiftsPage() {
   const [sendGiftModal, setSendGiftModal] = useState<GiftItem | null>(null);
   const [tribeMembers, setTribeMembers] = useState<any[]>([]);
   const [selectedRecipient, setSelectedRecipient] = useState<number | null>(null);
-  const [paymentProvider, setPaymentProvider] = useState<'stripe' | 'paypal' | 'paystack' | 'flutterwave'>('flutterwave');
+  const [paymentProvider] = useState<'flutterwave'>('flutterwave'); // Only Flutterwave for now
   const [giftMessage, setGiftMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);

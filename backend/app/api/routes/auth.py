@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator
 from datetime import date, datetime
 from typing import Optional
 import firebase_admin
@@ -46,13 +46,15 @@ class SignupRequest(BaseModel):
     profile_picture_url: str
     consent_given: bool
     
-    @validator('first_name', 'country', 'state', 'city')
+    @field_validator('first_name', 'country', 'state', 'city')
+    @classmethod
     def sanitize_strings(cls, v):
         if v:
             return sanitize_input(str(v), max_length=100)
         return v
     
-    @validator('firebase_uid')
+    @field_validator('firebase_uid')
+    @classmethod
     def validate_firebase_uid(cls, v):
         if not v or len(v) < 10 or len(v) > 200:
             raise ValueError('Invalid firebase_uid')

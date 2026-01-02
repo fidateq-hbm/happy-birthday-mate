@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 import secrets
 

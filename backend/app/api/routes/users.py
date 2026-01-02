@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from datetime import datetime, date
 from typing import Optional
 
@@ -17,7 +17,8 @@ class UpdateProfileRequest(BaseModel):
     city: Optional[str] = None
     state_visibility_enabled: Optional[bool] = None
     
-    @validator('first_name', 'city')
+    @field_validator('first_name', 'city')
+    @classmethod
     def sanitize_strings(cls, v):
         if v:
             return sanitize_input(str(v), max_length=100)
@@ -226,7 +227,8 @@ class ContactFormRequest(BaseModel):
     message: str
     user_id: Optional[int] = None
     
-    @validator('name', 'subject', 'message')
+    @field_validator('name', 'subject', 'message')
+    @classmethod
     def sanitize_strings(cls, v):
         if v:
             return sanitize_input(str(v), max_length=1000)
