@@ -278,9 +278,17 @@ async def create_birthday_wall(
 @router.get("/birthday-wall/user/{user_id}")
 async def get_user_birthday_wall(
     user_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get user's active birthday wall"""
+    """Get user's active birthday wall - requires authentication"""
+    # Verify user can only access their own wall
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only access your own birthday wall"
+        )
+    
     today = date.today()
     
     # Find active wall (not closed yet)
