@@ -68,9 +68,8 @@ export function WallInvitationManager({
   const fetchBirthdayMates = async () => {
     try {
       // Get current user's tribe members
-      const { user } = await import('@/store/authStore');
-      const authStore = await import('@/store/authStore');
-      const currentUser = authStore.useAuthStore.getState().user;
+      const { useAuthStore } = await import('@/store/authStore');
+      const currentUser = useAuthStore.getState().user;
       
       if (currentUser) {
         const response = await userAPI.getTribeMembers(currentUser.tribe_id, 100, false);
