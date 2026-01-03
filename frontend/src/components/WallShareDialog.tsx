@@ -96,8 +96,8 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
             }}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`font-bold gradient-text ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+            <div className={`flex items-center justify-between ${isMobile ? 'mb-4' : 'mb-6'}`}>
+              <h2 className={`font-bold gradient-text ${isMobile ? 'text-base' : 'text-2xl'}`}>
                 Share Birthday Wall
               </h2>
               <button
@@ -112,8 +112,8 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
             </div>
 
             {/* Share Link Card */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3 text-gray-900">
+            <div className={isMobile ? 'mb-4' : 'mb-6'}>
+              <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-semibold ${isMobile ? 'mb-2' : 'mb-3'} text-gray-900`}>
                 Share this link with friends and family
               </label>
               <div className="flex gap-2">
@@ -121,14 +121,14 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                   type="text"
                   value={shareLink}
                   readOnly
-                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className={`flex-1 ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-3'} border-2 border-gray-200 ${isMobile ? 'rounded-lg' : 'rounded-xl'} bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500`}
                 />
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCopy();
                   }}
-                  className={`px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-2 ${
+                  className={`${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-3'} ${isMobile ? 'rounded-lg' : 'rounded-xl'} border-2 transition-all flex items-center gap-2 ${
                     copied
                       ? 'border-green-500 bg-green-50 text-green-700'
                       : 'border-primary-500 bg-primary-500 text-white hover:bg-primary-600'
@@ -150,12 +150,12 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
             </div>
 
             {/* Share Message Preview */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold mb-3 text-gray-900">
+            <div className={isMobile ? 'mb-4' : 'mb-6'}>
+              <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-semibold ${isMobile ? 'mb-2' : 'mb-3'} text-gray-900`}>
                 Message to share
               </label>
-              <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{shareMessage}</p>
+              <div className={`${isMobile ? 'p-2.5' : 'p-4'} bg-gray-50 ${isMobile ? 'rounded-lg' : 'rounded-xl'} border-2 border-gray-200`}>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 whitespace-pre-wrap`}>{shareMessage}</p>
               </div>
               <button
                 onClick={(e) => {
@@ -163,7 +163,7 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                   navigator.clipboard.writeText(shareMessage);
                   toast.success('Message copied! 📋');
                 }}
-                className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className={`mt-2 ${isMobile ? 'text-xs' : 'text-sm'} text-primary-600 hover:text-primary-700 font-medium`}
               >
                 Copy message
               </button>
@@ -176,20 +176,20 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                   e.stopPropagation();
                   handleShare();
                 }}
-                className="w-full celebration-gradient text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                className={`w-full celebration-gradient text-white ${isMobile ? 'py-2 text-sm' : 'py-3'} ${isMobile ? 'rounded-lg' : 'rounded-xl'} font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2`}
               >
                 <Share2 className="w-5 h-5" />
                 Share via...
               </button>
 
               {/* Quick Share Options */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid grid-cols-2 ${isMobile ? 'gap-2' : 'gap-3'}`}>
                 <a
                   href={`whatsapp://send?text=${encodeURIComponent(shareMessage)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="p-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                  className={`${isMobile ? 'p-2 text-xs' : 'p-3'} bg-green-500 text-white ${isMobile ? 'rounded-lg' : 'rounded-xl'} font-semibold hover:bg-green-600 transition-all flex items-center justify-center gap-2`}
                 >
                   <MessageCircle className="w-5 h-5" />
                   WhatsApp
