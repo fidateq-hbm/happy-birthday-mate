@@ -105,16 +105,20 @@ export function WallControlPanel({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[55]"
             />
             
             {/* Panel */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`fixed ${isMobile ? 'bottom-0 left-0 right-0' : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'} z-50 glass-effect rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 max-h-[80vh] overflow-y-auto' : 'p-8 w-full max-w-md'} shadow-2xl`}
-              onClick={(e) => e.stopPropagation()}
+              exit={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : 20 }}
+              className={`fixed ${isMobile ? 'bottom-0 left-0 right-0 max-h-[90vh]' : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85vh]'} z-[60] glass-effect rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 w-full max-w-md overflow-y-auto'} shadow-2xl`}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className={`font-bold gradient-text ${isMobile ? 'text-xl' : 'text-2xl'}`}>
@@ -147,38 +151,44 @@ export function WallControlPanel({
                     </div>
                   </div>
                   <button
-                    onClick={() => handleUpdate({ uploads_enabled: !localUploadsEnabled })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpdate({ uploads_enabled: !localUploadsEnabled });
+                    }}
                     disabled={loading || localIsSealed}
-                    className={`relative w-14 h-8 rounded-full transition-colors ${localUploadsEnabled ? 'bg-green-500' : 'bg-gray-300'} ${localIsSealed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`relative w-14 h-8 rounded-full transition-colors ${localUploadsEnabled ? 'bg-green-500' : 'bg-gray-300'} ${localIsSealed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <div className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${localUploadsEnabled ? 'translate-x-6' : ''}`} />
                   </button>
                 </label>
               </div>
 
-              {/* Upload Permission */}
+              {/* Upload Permission - Always show when uploads are enabled */}
               {localUploadsEnabled && !localIsSealed && (
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold mb-3">Who Can Upload?</label>
+                  <label className="block text-sm font-semibold mb-3 text-gray-900">Who Can Upload?</label>
                   <div className="space-y-2">
                     {['none', 'birthday_mates', 'invited_guests', 'both'].map((permission) => (
                       <button
                         key={permission}
-                        onClick={() => handleUpdate({ upload_permission: permission })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUpdate({ upload_permission: permission });
+                        }}
                         disabled={loading}
                         className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
                           localUploadPermission === permission
                             ? 'border-primary-500 bg-primary-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full border-2 ${
+                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
                             localUploadPermission === permission
                               ? 'border-primary-500 bg-primary-500'
-                              : 'border-gray-300'
+                              : 'border-gray-300 bg-white'
                           }`} />
-                          <span className="font-medium">{permissionLabels[permission]}</span>
+                          <span className="font-medium text-gray-900">{permissionLabels[permission]}</span>
                         </div>
                       </button>
                     ))}
@@ -190,13 +200,16 @@ export function WallControlPanel({
               {localUploadsEnabled && !localIsSealed && (
                 <div className="mb-6">
                   <button
-                    onClick={() => handleUpdate({ upload_paused: !localUploadPaused })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpdate({ upload_paused: !localUploadPaused });
+                    }}
                     disabled={loading}
                     className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
                       localUploadPaused
                         ? 'border-amber-300 bg-amber-50'
                         : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <Pause className={`w-5 h-5 ${localUploadPaused ? 'text-amber-600' : 'text-gray-600'}`} />
                     <div className="text-left flex-1">
@@ -214,13 +227,16 @@ export function WallControlPanel({
               {/* Seal Wall */}
               <div className="mb-6">
                 <button
-                  onClick={() => handleUpdate({ is_sealed: !localIsSealed })}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpdate({ is_sealed: !localIsSealed });
+                  }}
                   disabled={loading}
                   className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
                     localIsSealed
                       ? 'border-red-300 bg-red-50'
                       : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {localIsSealed ? (
                     <Lock className="w-5 h-5 text-red-600" />

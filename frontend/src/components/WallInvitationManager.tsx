@@ -150,16 +150,20 @@ export function WallInvitationManager({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[55]"
             />
             
             {/* Panel */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`fixed ${isMobile ? 'bottom-0 left-0 right-0' : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'} z-50 glass-effect rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 max-h-[80vh] overflow-y-auto' : 'p-8 w-full max-w-lg'} shadow-2xl`}
-              onClick={(e) => e.stopPropagation()}
+              exit={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : 20 }}
+              className={`fixed ${isMobile ? 'bottom-0 left-0 right-0 max-h-[90vh]' : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85vh]'} z-[60] glass-effect rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 w-full max-w-lg overflow-y-auto'} shadow-2xl`}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className={`font-bold gradient-text ${isMobile ? 'text-xl' : 'text-2xl'}`}>
@@ -176,22 +180,28 @@ export function WallInvitationManager({
               {/* Invite Type Tabs */}
               <div className="flex gap-2 mb-6">
                 <button
-                  onClick={() => setInviteType('birthday_mate')}
-                  className={`flex-1 p-3 rounded-xl border-2 transition-all ${
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setInviteType('birthday_mate');
+                  }}
+                  className={`flex-1 p-3 rounded-xl border-2 transition-all cursor-pointer ${
                     inviteType === 'birthday_mate'
                       ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}
                 >
                   <Users className="w-5 h-5 mx-auto mb-1" />
                   <p className="text-sm font-semibold">Birthday Mates</p>
                 </button>
                 <button
-                  onClick={() => setInviteType('guest')}
-                  className={`flex-1 p-3 rounded-xl border-2 transition-all ${
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setInviteType('guest');
+                  }}
+                  className={`flex-1 p-3 rounded-xl border-2 transition-all cursor-pointer ${
                     inviteType === 'guest'
                       ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}
                 >
                   <Mail className="w-5 h-5 mx-auto mb-1" />
@@ -213,11 +223,14 @@ export function WallInvitationManager({
                         birthdayMates.map((mate) => (
                           <button
                             key={mate.id}
-                            onClick={() => setSelectedMateId(mate.id)}
-                            className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMateId(mate.id);
+                            }}
+                            className={`w-full p-3 rounded-xl border-2 transition-all text-left cursor-pointer ${
                               selectedMateId === mate.id
                                 ? 'border-primary-500 bg-primary-50'
-                                : 'border-gray-200 hover:border-gray-300'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
                             }`}
                           >
                             <div className="flex items-center gap-3">
@@ -265,9 +278,12 @@ export function WallInvitationManager({
                 )}
 
                 <button
-                  onClick={handleInvite}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleInvite();
+                  }}
                   disabled={inviting || (inviteType === 'birthday_mate' && !selectedMateId) || (inviteType === 'guest' && (!guestEmail || !guestName))}
-                  className="w-full mt-4 celebration-gradient text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mt-4 celebration-gradient text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {inviting ? 'Sending...' : 'Send Invitation'}
                 </button>
