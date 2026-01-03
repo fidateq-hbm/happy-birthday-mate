@@ -311,6 +311,13 @@ export default function DashboardPage() {
           <div className={`grid grid-cols-2 ${user.is_admin ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 md:gap-4`}>
             <button
               onClick={async () => {
+                if (!user) return;
+                
+                // Extract month and day from date_of_birth
+                const birthDate = new Date(user.date_of_birth);
+                const birthMonth = birthDate.getMonth() + 1; // getMonth() returns 0-11
+                const birthDay = birthDate.getDate();
+                
                 try {
                   // Check if user has existing wall
                   const response = await roomAPI.getUserBirthdayWall(user.id);
@@ -318,21 +325,11 @@ export default function DashboardPage() {
                   router.push(`/birthday-wall/${response.data.public_url_code}`);
                 } catch (error: any) {
                   // No existing wall - check if user can create one
-                  if (error.response?.status === 404) {
-                    const wallStatus = canCreateBirthdayWall(birthMonth, birthDay);
-                    if (wallStatus.canCreate) {
-                      router.push('/birthday-wall/create');
-                    } else {
-                      toast.error(wallStatus.message);
-                    }
+                  const wallStatus = canCreateBirthdayWall(birthMonth, birthDay);
+                  if (wallStatus.canCreate) {
+                    router.push('/birthday-wall/create');
                   } else {
-                    console.error('Error checking wall:', error);
-                    const wallStatus = canCreateBirthdayWall(birthMonth, birthDay);
-                    if (wallStatus.canCreate) {
-                      router.push('/birthday-wall/create');
-                    } else {
-                      toast.error(wallStatus.message);
-                    }
+                    toast.error(wallStatus.message);
                   }
                 }
               }}
@@ -342,6 +339,10 @@ export default function DashboardPage() {
               <h4 className="font-bold text-sm md:text-lg mb-1">Birthday Wall</h4>
               <p className="text-xs md:text-sm text-gray-600 hidden sm:block">
                 {(() => {
+                  if (!user) return 'Create or view your photo gallery';
+                  const birthDate = new Date(user.date_of_birth);
+                  const birthMonth = birthDate.getMonth() + 1;
+                  const birthDay = birthDate.getDate();
                   const wallStatus = canCreateBirthdayWall(birthMonth, birthDay);
                   if (wallStatus.canCreate) {
                     return 'Create or view your photo gallery';
