@@ -609,18 +609,19 @@ async def upload_photo_to_wall(
             detail="You don't have permission to upload to this wall. You need to be invited by the celebrant."
         )
     
-    # EME Phase 1: Check upload limit (1 upload per person)
-    existing_upload = db.query(WallUpload).filter(
-        WallUpload.wall_id == wall_id,
-        WallUpload.uploader_user_id == user_id,
-        WallUpload.upload_type == "photo"
-    ).first()
-    
-    if existing_upload:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You have already uploaded to this wall. Each person can only upload once."
-        )
+    # EME Phase 1: Check upload limit (1 upload per person) - Owner can upload unlimited times
+    if wall.owner_id != user_id:
+        existing_upload = db.query(WallUpload).filter(
+            WallUpload.wall_id == wall_id,
+            WallUpload.uploader_user_id == user_id,
+            WallUpload.upload_type == "photo"
+        ).first()
+        
+        if existing_upload:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You have already uploaded to this wall. Each person can only upload once."
+            )
     
     # Check photo limit
     photo_count = db.query(WallPhoto).filter(WallPhoto.wall_id == wall_id).count()

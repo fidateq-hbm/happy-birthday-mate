@@ -133,8 +133,12 @@ export function WallControlPanel({
               </div>
 
               {/* Uploads Enabled Toggle */}
-              <div className="mb-6">
-                <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+              <div className={isMobile ? 'mb-4' : 'mb-6'}>
+                <label 
+                  className={`flex items-center justify-between ${isMobile ? 'p-3' : 'p-4'} bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors`}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${localUploadsEnabled ? 'bg-green-100' : 'bg-gray-200'}`}>
                       {localUploadsEnabled ? (
@@ -153,8 +157,10 @@ export function WallControlPanel({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
                       handleUpdate({ uploads_enabled: !localUploadsEnabled });
                     }}
+                    onMouseDown={(e) => e.stopPropagation()}
                     disabled={loading || localIsSealed}
                     className={`relative w-14 h-8 rounded-full transition-colors ${localUploadsEnabled ? 'bg-green-500' : 'bg-gray-300'} ${localIsSealed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
@@ -173,8 +179,10 @@ export function WallControlPanel({
                         key={permission}
                         onClick={(e) => {
                           e.stopPropagation();
+                          e.preventDefault();
                           handleUpdate({ upload_permission: permission });
                         }}
+                        onMouseDown={(e) => e.stopPropagation()}
                         disabled={loading}
                         className={`w-full ${isMobile ? 'p-2 text-xs' : 'p-3'} rounded-lg border-2 transition-all text-left ${
                           localUploadPermission === permission
@@ -202,8 +210,10 @@ export function WallControlPanel({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
                       handleUpdate({ upload_paused: !localUploadPaused });
                     }}
+                    onMouseDown={(e) => e.stopPropagation()}
                     disabled={loading}
                     className={`w-full ${isMobile ? 'p-2.5' : 'p-4'} rounded-lg border-2 transition-all flex items-center gap-3 ${
                       localUploadPaused

@@ -126,8 +126,10 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     handleCopy();
                   }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className={`${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-3'} ${isMobile ? 'rounded-lg' : 'rounded-xl'} border-2 transition-all flex items-center gap-2 ${
                     copied
                       ? 'border-green-500 bg-green-50 text-green-700'
@@ -174,8 +176,10 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   handleShare();
                 }}
+                onMouseDown={(e) => e.stopPropagation()}
                 className={`w-full celebration-gradient text-white ${isMobile ? 'py-2 text-sm' : 'py-3'} ${isMobile ? 'rounded-lg' : 'rounded-xl'} font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2`}
               >
                 <Share2 className="w-5 h-5" />
@@ -188,7 +192,12 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                   href={`whatsapp://send?text=${encodeURIComponent(shareMessage)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    window.open(`whatsapp://send?text=${encodeURIComponent(shareMessage)}`, '_blank');
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className={`${isMobile ? 'p-2 text-xs' : 'p-3'} bg-green-500 text-white ${isMobile ? 'rounded-lg' : 'rounded-xl'} font-semibold hover:bg-green-600 transition-all flex items-center justify-center gap-2`}
                 >
                   <MessageCircle className="w-5 h-5" />

@@ -590,7 +590,7 @@ export default function BirthdayWallPage() {
                       </p>
                     </div>
                   )}
-                  {wall.uploads_enabled && !wall.upload_paused && uploadStatus && !uploadStatus.can_upload && (
+                  {wall.uploads_enabled && !wall.upload_paused && uploadStatus && !uploadStatus.can_upload && !isWallOwner && (
                     <div className="glass-effect rounded-xl p-4 mb-4 border-2 border-red-300 bg-red-50/50">
                       <p className={`text-center text-red-800 ${isMobile ? 'text-sm' : 'text-base'}`}>
                         {uploadStatus.has_uploaded 
