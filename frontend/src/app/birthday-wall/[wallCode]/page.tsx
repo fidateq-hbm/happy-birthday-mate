@@ -675,19 +675,24 @@ export default function BirthdayWallPage() {
                             </button>
                             {/* Frame picker dropdown */}
                             {changingFramePhotoId === photo.id && (
-                              <div className="absolute bottom-full right-0 mb-2 glass-effect rounded-lg p-2 border-2 border-primary-200 z-50 min-w-[200px]">
+                              <div 
+                                className="absolute bottom-full right-0 mb-2 glass-effect rounded-lg p-2 border-2 border-primary-200 z-50 min-w-[200px]"
+                                onClick={(e) => e.stopPropagation()} // Prevent clicks from closing the dropdown
+                              >
                                 <p className={`font-semibold mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Choose Frame</p>
                                 <div className="grid grid-cols-4 gap-1">
                                   {['none', 'classic', 'elegant', 'vintage', 'modern', 'gold', 'rainbow', 'polaroid'].map((frame) => (
                                     <button
                                       key={frame}
-                                      onClick={() => handleChangeFrame(photo.id, frame)}
-                                      disabled={changingFramePhotoId === photo.id}
-                                      className={`p-1.5 rounded border-2 transition-all capitalize text-[10px] ${
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Prevent event bubbling
+                                        handleChangeFrame(photo.id, frame);
+                                      }}
+                                      className={`p-1.5 rounded border-2 transition-all capitalize text-[10px] cursor-pointer ${
                                         photo.frame_style === frame
                                           ? 'border-primary-500 bg-primary-100'
                                           : 'border-gray-200 hover:border-gray-300'
-                                      } disabled:opacity-50`}
+                                      }`}
                                     >
                                       {frame === 'none' ? 'None' : frame}
                                     </button>

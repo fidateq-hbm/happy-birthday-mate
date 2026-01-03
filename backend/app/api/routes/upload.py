@@ -185,9 +185,11 @@ async def upload_birthday_wall_photo(
         contents = output.getvalue()
         file_extension = '.jpg'  # Always save as JPEG after processing
     except Exception as e:
-        # If image processing fails, use original (but log the error)
-        print(f"Warning: Image resize failed, using original: {str(e)}")
-        file_extension = Path(file.filename).suffix or '.jpg'
+        # Image resize is required - fail if it doesn't work
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to process image. Please ensure the file is a valid image. Error: {str(e)}"
+        )
     
     # Generate unique filename using authenticated user's ID
     unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
