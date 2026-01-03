@@ -113,7 +113,7 @@ export function WallControlPanel({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className={`fixed ${isMobile ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[70vh] w-[85vw] max-w-[340px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[500px]'} z-[60] rounded-2xl ${isMobile ? '' : ''} ${isMobile ? 'p-4 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
+              className={`fixed ${isMobile ? 'inset-x-4 top-1/2 -translate-y-1/2 max-h-[75vh] w-auto max-w-[calc(100vw-2rem)]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[500px]'} z-[60] rounded-2xl ${isMobile ? 'mx-auto' : ''} ${isMobile ? 'p-4 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
