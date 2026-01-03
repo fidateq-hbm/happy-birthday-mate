@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Play, Pause, Lock, Unlock, Users, Mail, X } from 'lucide-react';
+import { Settings, Play, Pause, Users, Mail, X } from 'lucide-react';
 import { roomAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -110,10 +110,10 @@ export function WallControlPanel({
             
             {/* Panel */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : -20 }}
+              initial={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : -20 }}
-              className={`fixed ${isMobile ? 'bottom-0 left-0 right-0 max-h-[90vh]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh]'} z-[60] rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200 ${isMobile ? 'w-full' : 'w-[90vw] max-w-[500px]'}`}
+              exit={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : -20 }}
+              className={`fixed ${isMobile ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85vh] w-[90vw] max-w-[400px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[500px]'} z-[60] rounded-3xl ${isMobile ? '' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -223,38 +223,6 @@ export function WallControlPanel({
                   </button>
                 </div>
               )}
-
-              {/* Seal Wall */}
-              <div className="mb-6">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUpdate({ is_sealed: !localIsSealed });
-                  }}
-                  disabled={loading}
-                  className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                    localIsSealed
-                      ? 'border-red-300 bg-red-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  {localIsSealed ? (
-                    <Lock className="w-5 h-5 text-red-600" />
-                  ) : (
-                    <Unlock className="w-5 h-5 text-gray-600" />
-                  )}
-                  <div className="text-left flex-1">
-                    <p className="font-semibold">
-                      {localIsSealed ? 'Wall is Sealed' : 'Seal Wall'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {localIsSealed 
-                        ? 'Wall is permanently sealed and immutable' 
-                        : 'Permanently seal wall (no more uploads or changes)'}
-                    </p>
-                  </div>
-                </button>
-              </div>
 
               {/* Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
