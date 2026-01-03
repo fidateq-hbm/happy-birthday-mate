@@ -90,9 +90,12 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : 20 }}
             style={{
-              ...(isMobile ? {} : { maxWidth: '90vw', width: '100%', maxWidth: '600px' })
+              ...(isMobile ? {} : { 
+                maxWidth: 'min(90vw, 600px)',
+                width: '100%'
+              })
             }}
-            className={`fixed ${isMobile ? 'bottom-0 left-0 right-0 max-h-[90vh]' : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85vh]'} z-[60] glass-effect rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 w-full max-w-lg overflow-y-auto'} shadow-2xl bg-white/95 backdrop-blur-lg`}
+            className={`fixed ${isMobile ? 'bottom-0 left-0 right-0 max-h-[90vh]' : 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85vh]'} z-[60] glass-effect rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 w-full overflow-y-auto'} shadow-2xl bg-white/95 backdrop-blur-lg`}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
