@@ -194,10 +194,20 @@ async def upload_birthday_wall_photo(
         output = io.BytesIO()
         image.save(output, format='JPEG', quality=85, optimize=True)
         output.seek(0)  # Reset position before reading
-        contents = output.getvalue()
+        resized_contents = output.getvalue()
+        original_size_bytes = len(contents)
+        resized_size_bytes = len(resized_contents)
+        
+        # Verify resize actually happened
+        if resized_size_bytes == 0:
+            raise ValueError("Resized image is empty")
+        
+        # Use resized contents
+        contents = resized_contents
         file_extension = '.jpg'  # Always save as JPEG after processing
         
-        print(f"Resized image size: {len(contents)} bytes (original: {len(contents)} bytes)")
+        print(f"Image resize successful: {original_size_bytes} bytes -> {resized_size_bytes} bytes")
+        print(f"Final image dimensions: {image.size}")
         
     except Exception as e:
         # Image resize is required - fail if it doesn't work
