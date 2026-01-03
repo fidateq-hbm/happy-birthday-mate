@@ -107,7 +107,7 @@ export function DraggablePhoto({
     e.stopPropagation();
     e.preventDefault();
     setIsRotating(true);
-    const container = nodeRef.current as HTMLElement;
+    const container = nodeRef.current;
     if (container) {
       const rect = container.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -119,7 +119,7 @@ export function DraggablePhoto({
 
   const handleRotate = (e: MouseEvent) => {
     if (!isRotating || !isWallOwner) return;
-    const container = nodeRef.current as HTMLElement;
+    const container = nodeRef.current;
     if (container) {
       const rect = container.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
