@@ -1,20 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Chrome, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { authAPI } from '@/lib/api';
 
-export default function SignupPage() {
+function SignupPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +30,7 @@ export default function SignupPage() {
       await sendEmailVerification(user);
       
       toast.success('Account created! Please check your email to verify your account 📧');
-      router.push('/onboarding');
+      router.push(`/onboarding?redirect=${encodeURIComponent(redirectTo)}`);
     } catch (error: any) {
       // Handle specific Firebase errors with user-friendly messages
       let errorMessage = 'Failed to create account. Please try again.';
@@ -54,7 +56,7 @@ export default function SignupPage() {
               await sendEmailVerification(firebaseUser);
             }
             toast.success('Welcome back! Let\'s complete your profile 🎉');
-            router.push('/onboarding');
+            router.push(`/onboarding?redirect=${encodeURIComponent(redirectTo)}`);
           }
           return; // Exit early since we handled the incomplete signup
         } catch (signInError: any) {
@@ -97,11 +99,11 @@ export default function SignupPage() {
       try {
         await authAPI.getMe();
         toast.success('Welcome back! 🎉');
-        router.push('/dashboard');
+        router.push(redirectTo);
       } catch {
         // New user, go to onboarding
         toast.success('Account created! Let\'s complete your profile 🎉');
-        router.push('/onboarding');
+        router.push(`/onboarding?redirect=${encodeURIComponent(redirectTo)}`);
       }
     } catch (error: any) {
       // Handle specific Firebase errors with user-friendly messages
@@ -201,7 +203,7 @@ export default function SignupPage() {
 
             <p className="text-center text-sm text-gray-600">
               Already have an account?{' '}
-              <a href="/login" className="text-primary-600 font-semibold hover:underline">
+              <a href={`/login?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary-600 font-semibold hover:underline">
                 Log in
               </a>
             </p>
@@ -212,3 +214,17 @@ export default function SignupPage() {
   );
 }
 
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SignupPageContent />
+    </Suspense>
+  );
+}

@@ -19,13 +19,7 @@ function InvitePageContent() {
   useEffect(() => {
     if (authLoading) return;
 
-    // If user is logged in, redirect to wall
-    if (user) {
-      router.push(`/birthday-wall/${inviteCode}`);
-      return;
-    }
-
-    // Fetch wall info to show celebrant name
+    // Fetch wall info to show celebrant name (works without auth)
     const fetchWallInfo = async () => {
       try {
         const { roomAPI } = await import('@/lib/api');
@@ -40,7 +34,7 @@ function InvitePageContent() {
     };
 
     fetchWallInfo();
-  }, [inviteCode, user, authLoading, router]);
+  }, [inviteCode, authLoading]);
 
   if (authLoading || loading) {
     return (
@@ -189,19 +183,31 @@ function InvitePageContent() {
 
             {/* CTA Buttons */}
             <div className="space-y-4">
-              <Link
-                href="/signup"
-                className="block w-full celebration-gradient text-white py-4 rounded-xl font-bold text-lg text-center hover:shadow-xl transition-all flex items-center justify-center gap-2"
-              >
-                Sign Up - It's Free! 🎂
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                href="/login"
-                className="block w-full text-center text-primary-600 font-semibold hover:text-primary-700 transition-colors"
-              >
-                Already have an account? Sign in
-              </Link>
+              {user ? (
+                <Link
+                  href={`/birthday-wall/${inviteCode}`}
+                  className="block w-full celebration-gradient text-white py-4 rounded-xl font-bold text-lg text-center hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                >
+                  Go to {celebrantName}'s Wall 🎉
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href={`/signup?redirect=/birthday-wall/${inviteCode}`}
+                    className="block w-full celebration-gradient text-white py-4 rounded-xl font-bold text-lg text-center hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    Sign Up - It's Free! 🎂
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    href={`/login?redirect=/birthday-wall/${inviteCode}`}
+                    className="block w-full text-center text-primary-600 font-semibold hover:text-primary-700 transition-colors"
+                  >
+                    Already have an account? Sign in
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Footer Note */}

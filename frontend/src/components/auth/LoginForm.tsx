@@ -1,19 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Mail, Lock, Chrome } from 'lucide-react';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
 
-export function LoginForm() {
+function LoginFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +41,7 @@ export function LoginForm() {
         } else {
           toast.success('Welcome back! 🎉');
         }
-        router.push('/dashboard');
+        router.push(redirectTo);
       } catch (backendError: any) {
         // User doesn't exist in backend - incomplete signup, redirect to onboarding
         if (!user.emailVerified) {
@@ -90,7 +92,7 @@ export function LoginForm() {
         // Note: getMe() uses Authorization header from Firebase token automatically
         await authAPI.getMe();
         toast.success('Welcome back! 🎉');
-        router.push('/dashboard');
+        router.push(redirectTo);
       } catch {
         // User doesn't exist, redirect to onboarding
         router.push('/onboarding');
