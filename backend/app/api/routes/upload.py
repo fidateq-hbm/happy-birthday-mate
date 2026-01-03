@@ -5,6 +5,8 @@ import uuid
 from datetime import datetime
 import os
 from sqlalchemy.orm import Session
+from PIL import Image
+import io
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
@@ -137,12 +139,63 @@ async def upload_birthday_wall_photo(
     wall_dir = BIRTHDAY_WALLS_DIR / str(wall_id)
     wall_dir.mkdir(parents=True, exist_ok=True)
     
+    # Resize image to standard portrait size (3:4 aspect ratio)
+    # Standard size: 600x800 pixels (portrait orientation)
+    TARGET_WIDTH = 600
+    TARGET_HEIGHT = 800
+    
+    try:
+        # Open image from bytes
+        image = Image.open(io.BytesIO(contents))
+        
+        # Convert RGBA to RGB if necessary (for PNG with transparency)
+        if image.mode in ('RGBA', 'LA', 'P'):
+            # Create white background
+            rgb_image = Image.new('RGB', image.size, (255, 255, 255))
+            if image.mode == 'P':
+                image = image.convert('RGBA')
+            rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+            image = rgb_image
+        elif image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Calculate resize dimensions maintaining aspect ratio
+        # Crop to center and resize to target dimensions
+        original_width, original_height = image.size
+        target_aspect = TARGET_WIDTH / TARGET_HEIGHT
+        original_aspect = original_width / original_height
+        
+        if original_aspect > target_aspect:
+            # Image is wider - crop width
+            new_width = int(original_height * target_aspect)
+            left = (original_width - new_width) // 2
+            image = image.crop((left, 0, left + new_width, original_height))
+        else:
+            # Image is taller - crop height
+            new_height = int(original_width / target_aspect)
+            top = (original_height - new_height) // 2
+            image = image.crop((0, top, original_width, top + new_height))
+        
+        # Resize to target dimensions
+        image = image.resize((TARGET_WIDTH, TARGET_HEIGHT), Image.Resampling.LANCZOS)
+        
+        # Save resized image to bytes
+        output = io.BytesIO()
+        image.save(output, format='JPEG', quality=85, optimize=True)
+        contents = output.getvalue()
+        file_extension = '.jpg'  # Always save as JPEG after processing
+    except Exception as e:
+        # If image processing fails, use original (but log the error)
+        print(f"Warning: Image resize failed, using original: {str(e)}")
+        file_extension = Path(file.filename).suffix
+    
     # Generate unique filename using authenticated user's ID
-    file_extension = Path(file.filename).suffix
+    if 'file_extension' not in locals():
+        file_extension = Path(file.filename).suffix
     unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
     file_path = wall_dir / unique_filename
     
-    # Save file
+    # Save resized file
     with open(file_path, "wb") as buffer:
         buffer.write(contents)
     

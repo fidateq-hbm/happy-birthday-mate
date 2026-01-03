@@ -61,6 +61,7 @@ export default function BirthdayWallPage() {
   const [editingPhotoId, setEditingPhotoId] = useState<number | null>(null);
   const [editingCaption, setEditingCaption] = useState<string>('');
   const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
+  const [changingFramePhotoId, setChangingFramePhotoId] = useState<number | null>(null);
 
   const wallCode = params.wallCode as string;
 
@@ -341,6 +342,28 @@ export default function BirthdayWallPage() {
         errorMessage = error.response.data.detail;
       }
       toast.error(errorMessage);
+    }
+  };
+
+  const handleChangeFrame = async (photoId: number, frameStyle: string) => {
+    if (!user || !wall) return;
+    
+    setChangingFramePhotoId(photoId);
+    try {
+      await roomAPI.updatePhoto(wall.wall_id, photoId, {
+        frame_style: frameStyle
+      });
+      toast.success('Frame updated successfully');
+      setChangingFramePhotoId(null);
+      await fetchWall(); // Refresh wall
+    } catch (error: any) {
+      console.error('Error updating frame:', error);
+      let errorMessage = 'Failed to update frame';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      toast.error(errorMessage);
+      setChangingFramePhotoId(null);
     }
   };
 
@@ -635,12 +658,57 @@ export default function BirthdayWallPage() {
                     <div className={`flex items-center justify-between ${isMobile ? 'px-2 pb-2' : 'px-3 pb-3'}`}>
                       <p className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>by {photo.uploaded_by}</p>
                       <div className="flex gap-2 items-center">
+                        {/* Frame change button - show for all users on non-archived walls */}
+                        {!wall.is_archived && (
+                          <div className="relative">
+                            <button
+                              onClick={() => setChangingFramePhotoId(changingFramePhotoId === photo.id ? null : photo.id)}
+                              disabled={changingFramePhotoId === photo.id && deletingPhotoId === photo.id}
+                              className="text-gray-400 hover:text-purple-600 transition-colors cursor-pointer p-1 disabled:opacity-50 relative"
+                              title="Change frame"
+                            >
+                              {changingFramePhotoId === photo.id ? (
+                                <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} animate-spin rounded-full border-2 border-purple-600 border-t-transparent`}></div>
+                              ) : (
+                                <Palette className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                              )}
+                            </button>
+                            {/* Frame picker dropdown */}
+                            {changingFramePhotoId === photo.id && (
+                              <div className="absolute bottom-full right-0 mb-2 glass-effect rounded-lg p-2 border-2 border-primary-200 z-50 min-w-[200px]">
+                                <p className={`font-semibold mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Choose Frame</p>
+                                <div className="grid grid-cols-4 gap-1">
+                                  {['none', 'classic', 'elegant', 'vintage', 'modern', 'gold', 'rainbow', 'polaroid'].map((frame) => (
+                                    <button
+                                      key={frame}
+                                      onClick={() => handleChangeFrame(photo.id, frame)}
+                                      disabled={changingFramePhotoId === photo.id}
+                                      className={`p-1.5 rounded border-2 transition-all capitalize text-[10px] ${
+                                        photo.frame_style === frame
+                                          ? 'border-primary-500 bg-primary-100'
+                                          : 'border-gray-200 hover:border-gray-300'
+                                      } disabled:opacity-50`}
+                                    >
+                                      {frame === 'none' ? 'None' : frame}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  onClick={() => setChangingFramePhotoId(null)}
+                                  className="mt-2 w-full px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         {/* Edit/Delete buttons - only show for wall owner or photo uploader */}
                         {canEditPhoto(photo) && editingPhotoId !== photo.id && (
                           <>
                             <button
                               onClick={() => handleStartEdit(photo)}
-                              disabled={deletingPhotoId === photo.id}
+                              disabled={deletingPhotoId === photo.id || changingFramePhotoId === photo.id}
                               className="text-gray-400 hover:text-blue-600 transition-colors cursor-pointer p-1 disabled:opacity-50"
                               title="Edit photo"
                             >
@@ -648,7 +716,7 @@ export default function BirthdayWallPage() {
                             </button>
                             <button
                               onClick={() => handleDeletePhoto(photo.id)}
-                              disabled={deletingPhotoId === photo.id}
+                              disabled={deletingPhotoId === photo.id || changingFramePhotoId === photo.id}
                               className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer p-1 disabled:opacity-50"
                               title="Delete photo"
                             >
