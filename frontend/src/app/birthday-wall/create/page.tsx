@@ -379,6 +379,8 @@ export default function CreateBirthdayWallPage() {
                 <strong>Note:</strong> Your Birthday Wall can only be created within 24 hours before your birthday. 
                 It opens 24 hours before your birthday and closes 48 hours after. After closing, it becomes an archived memory 
                 labeled by year that you can always revisit. Friends can upload photos and react with emojis while it's open.
+                <br /><br />
+                <strong>After closure, the Birthday Wall becomes archived and visible only to the celebrant.</strong>
               </p>
             </div>
 

@@ -115,6 +115,14 @@ export default function WallArchivePage() {
               </button>
             )}
 
+            {/* Info Message */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-blue-900">
+                <strong>Archive Information:</strong> After closure, the Birthday Wall becomes archived and visible only to the celebrant. 
+                Browse your past birthday memories organized by year.
+              </p>
+            </div>
+
             {loadingArchive ? (
               <div className="flex items-center justify-center py-16">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600"></div>

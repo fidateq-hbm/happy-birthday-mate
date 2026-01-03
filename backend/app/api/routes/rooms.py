@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
 from pydantic import BaseModel, field_validator
@@ -6,7 +6,7 @@ from typing import Optional
 import secrets
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, get_optional_user
 from app.core.security import limiter, sanitize_input
 from app.models import Room, RoomParticipant, Message, User, RoomTypeEnum, BirthdayWall, WallPhoto, WallThemeEnum, PhotoReaction, BackgroundAnimationEnum
 

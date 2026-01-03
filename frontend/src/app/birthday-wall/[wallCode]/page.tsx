@@ -510,6 +510,9 @@ export default function BirthdayWallPage() {
                 <p className={`text-center text-amber-700 mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                   This wall is archived and read-only. View your memories from {wall.birthday_year}!
                 </p>
+                <p className={`text-center text-amber-600 mt-2 font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  After closure, the Birthday Wall becomes archived and visible only to the celebrant.
+                </p>
               </div>
             </div>
           )}
