@@ -187,11 +187,9 @@ async def upload_birthday_wall_photo(
     except Exception as e:
         # If image processing fails, use original (but log the error)
         print(f"Warning: Image resize failed, using original: {str(e)}")
-        file_extension = Path(file.filename).suffix
+        file_extension = Path(file.filename).suffix or '.jpg'
     
     # Generate unique filename using authenticated user's ID
-    if 'file_extension' not in locals():
-        file_extension = Path(file.filename).suffix
     unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
     file_path = wall_dir / unique_filename
     
