@@ -86,20 +86,20 @@ export function DraggablePhoto({
     setPosition({ x: data.x, y: data.y });
   };
 
-  const handleDragStop = async (e: DraggableEvent, data: DraggableData) => {
+  const handleDragStop = (e: DraggableEvent, data: DraggableData) => {
     if (!isWallOwner) return;
     setIsDragging(false);
     
-    try {
-      await roomAPI.updatePhotoPosition(wallId, photo.id, {
-        position_x: data.x,
-        position_y: data.y
-      });
+    // Call async operation without making this function async
+    roomAPI.updatePhotoPosition(wallId, photo.id, {
+      position_x: data.x,
+      position_y: data.y
+    }).then(() => {
       onUpdate();
-    } catch (error: any) {
+    }).catch((error: any) => {
       console.error('Error updating photo position:', error);
       toast.error('Failed to update photo position');
-    }
+    });
   };
 
   const handleRotateStart = (e: React.MouseEvent) => {
