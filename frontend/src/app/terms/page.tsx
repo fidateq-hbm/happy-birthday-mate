@@ -161,6 +161,8 @@ export default function TermsOfServicePage() {
               <li>Fees, pricing, and charges will be clearly disclosed before purchase.</li>
               <li>Transaction fees or international processing fees may apply.</li>
               <li>All payments are final unless otherwise required by law.</li>
+              <li><strong>Withdrawal availability depends on supported payment providers by country.</strong> Some regions may have limited withdrawal options or processing delays due to provider availability and local regulations.</li>
+              <li>Birthday Coins can be converted to cash and withdrawn, subject to available payment methods in your country.</li>
             </ul>
           </section>
 
