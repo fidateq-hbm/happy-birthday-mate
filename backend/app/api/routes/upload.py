@@ -139,10 +139,10 @@ async def upload_birthday_wall_photo(
     wall_dir = BIRTHDAY_WALLS_DIR / str(wall_id)
     wall_dir.mkdir(parents=True, exist_ok=True)
     
-    # Resize image to standard portrait size (3:4 aspect ratio)
-    # Standard size: 600x800 pixels (portrait orientation)
-    TARGET_WIDTH = 600
-    TARGET_HEIGHT = 800
+    # Resize image to standard size
+    # Standard size: 520x486 pixels (landscape orientation)
+    TARGET_WIDTH = 520
+    TARGET_HEIGHT = 486
     
     try:
         # Create a fresh BytesIO from contents (reset position)
