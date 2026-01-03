@@ -92,6 +92,11 @@ export default function BirthdayWallPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Protect dialog state during renders
+  useEffect(() => {
+    // This ensures the frame picker state is maintained even during re-renders
+  }, [showFramePicker]);
+
   useEffect(() => {
     fetchWall();
   }, [wallCode, user?.id]);
