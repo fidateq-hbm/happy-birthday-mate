@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { userAPI, api } from '@/lib/api';
-import { ArrowLeft, Upload, User, Save } from 'lucide-react';
+import { ArrowLeft, Upload, User, Save, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, loading } = useAuthStore();
+  const { user, loading, logout } = useAuthStore();
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -95,6 +97,17 @@ export default function SettingsPage() {
       toast.error(errorMessage);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      logout();
+      toast.success('Logged out successfully');
+      router.push('/');
+    } catch (error) {
+      toast.error('Failed to log out');
     }
   };
 
@@ -227,6 +240,19 @@ export default function SettingsPage() {
                   />
                 </label>
               </div>
+            </div>
+
+            {/* Logout Section */}
+            <div className="border-t border-gray-200 pt-8 mt-8">
+              <h2 className={`font-semibold mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>Account</h2>
+              
+              <button
+                onClick={handleLogout}
+                className={`w-full flex items-center justify-center gap-3 bg-red-50 hover:bg-red-100 text-red-600 border-2 border-red-200 ${isMobile ? 'px-4 py-3 text-sm' : 'px-6 py-4'} rounded-xl font-semibold transition-all`}
+              >
+                <LogOut className="w-5 h-5" />
+                Log Out
+              </button>
             </div>
           </div>
         </div>
