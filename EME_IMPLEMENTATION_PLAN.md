@@ -200,26 +200,40 @@ This document outlines the implementation plan for transforming the Birthday Wal
    - `payout_details` (JSON) - Stores account info
    - `status` (Enum: 'pending', 'processing', 'completed', 'failed')
    - `transaction_id` (String, nullable)
+   - `country_code` (String) - User's country for provider availability check
    - `created_at` (DateTime)
+   
+   **IMPORTANT NOTE:** Withdrawal availability depends on supported payment providers by country. This must be clearly communicated to users to avoid disputes when certain regions have delays or limitations.
 
 **API Endpoints:**
 - `GET /api/coins/wallet` - Get user's wallet
 - `POST /api/coins/gift` - Gift coins to celebrant
 - `POST /api/coins/attach` - Attach coins to card/gift
-- `POST /api/coins/withdraw` - Request withdrawal
+- `GET /api/coins/withdrawal-methods` - Get available withdrawal methods for user's country
+- `POST /api/coins/withdraw` - Request withdrawal (validates country/provider availability)
 - `GET /api/coins/transactions` - Get transaction history
 
 **Frontend Changes:**
 - Wallet display component
 - Coin gifting UI
-- Withdrawal request form
+- Withdrawal request form (with country/provider availability check)
 - Transaction history
+- **IMPORTANT:** Display clear messaging: "Withdrawal availability depends on supported payment providers by country" in withdrawal UI and terms
 
 **Questions for You:**
 1. What should be the coin-to-cash conversion rate?
 2. What payout methods should be supported initially?
 3. Should there be minimum withdrawal amounts?
 4. Should coins expire, or accumulate indefinitely?
+
+**IMPORTANT DISCLAIMER TO IMPLEMENT:**
+- "Withdrawal availability depends on supported payment providers by country."
+- This must be displayed prominently in:
+  - Withdrawal request form
+  - Wallet/balance page
+  - Terms of Service
+  - FAQ section
+- This avoids future disputes when certain regions have delays or limitations.
 
 ---
 

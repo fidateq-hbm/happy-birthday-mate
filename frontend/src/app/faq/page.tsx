@@ -113,6 +113,16 @@ const FAQ_DATA: FAQItem[] = [
     question: 'Can I send gifts to non-users?',
     answer: 'Currently, gifts can only be sent to registered users. The recipient will receive a notification when they log in.'
   },
+  {
+    category: 'gifts',
+    question: 'How do Birthday Coins work?',
+    answer: 'Birthday Coins are our platform\'s emotional currency. You can gift coins to celebrants, attach them to cards and gifts, and celebrants can accumulate coins in their wallet. Coins can be converted to cash and withdrawn, or reused within the platform to buy gifts for other celebrants.'
+  },
+  {
+    category: 'gifts',
+    question: 'How do I withdraw my Birthday Coins?',
+    answer: 'You can withdraw your coins from your wallet. Go to your wallet, select the withdrawal amount, choose your preferred payout method, and submit your request. **Important:** Withdrawal availability depends on supported payment providers by country. Some regions may have limited options or processing delays.'
+  },
   
   // Birthday Buddy
   {
