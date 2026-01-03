@@ -154,8 +154,8 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
               <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-semibold ${isMobile ? 'mb-2' : 'mb-3'} text-gray-900`}>
                 Message to share
               </label>
-              <div className={`${isMobile ? 'p-2.5' : 'p-4'} bg-gray-50 ${isMobile ? 'rounded-lg' : 'rounded-xl'} border-2 border-gray-200`}>
-                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 whitespace-pre-wrap`}>{shareMessage}</p>
+              <div className={`${isMobile ? 'p-2.5' : 'p-4'} bg-gray-50 ${isMobile ? 'rounded-lg' : 'rounded-xl'} border-2 border-gray-200 overflow-hidden`}>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 break-words overflow-wrap-anywhere`}>{shareMessage}</p>
               </div>
               <button
                 onClick={(e) => {
