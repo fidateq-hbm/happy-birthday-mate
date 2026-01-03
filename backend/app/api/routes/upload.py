@@ -145,8 +145,14 @@ async def upload_birthday_wall_photo(
     TARGET_HEIGHT = 800
     
     try:
+        # Create a fresh BytesIO from contents (reset position)
+        image_bytes = io.BytesIO(contents)
+        image_bytes.seek(0)  # Ensure we're at the start
+        
         # Open image from bytes
-        image = Image.open(io.BytesIO(contents))
+        image = Image.open(image_bytes)
+        original_size = image.size
+        print(f"Original image size: {original_size}, mode: {image.mode}")
         
         # Convert RGBA to RGB if necessary (for PNG with transparency)
         if image.mode in ('RGBA', 'LA', 'P'):
@@ -165,27 +171,40 @@ async def upload_birthday_wall_photo(
         target_aspect = TARGET_WIDTH / TARGET_HEIGHT
         original_aspect = original_width / original_height
         
+        print(f"Original aspect: {original_aspect:.2f}, Target aspect: {target_aspect:.2f}")
+        
         if original_aspect > target_aspect:
             # Image is wider - crop width
             new_width = int(original_height * target_aspect)
             left = (original_width - new_width) // 2
             image = image.crop((left, 0, left + new_width, original_height))
+            print(f"Cropped width: {image.size}")
         else:
             # Image is taller - crop height
             new_height = int(original_width / target_aspect)
             top = (original_height - new_height) // 2
             image = image.crop((0, top, original_width, top + new_height))
+            print(f"Cropped height: {image.size}")
         
         # Resize to target dimensions
         image = image.resize((TARGET_WIDTH, TARGET_HEIGHT), Image.Resampling.LANCZOS)
+        print(f"Resized to: {image.size}")
         
         # Save resized image to bytes
         output = io.BytesIO()
         image.save(output, format='JPEG', quality=85, optimize=True)
+        output.seek(0)  # Reset position before reading
         contents = output.getvalue()
         file_extension = '.jpg'  # Always save as JPEG after processing
+        
+        print(f"Resized image size: {len(contents)} bytes (original: {len(contents)} bytes)")
+        
     except Exception as e:
         # Image resize is required - fail if it doesn't work
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Image resize error: {str(e)}")
+        print(f"Traceback: {error_trace}")
         raise HTTPException(
             status_code=400,
             detail=f"Failed to process image. Please ensure the file is a valid image. Error: {str(e)}"
