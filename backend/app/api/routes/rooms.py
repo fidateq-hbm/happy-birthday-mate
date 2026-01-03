@@ -371,6 +371,7 @@ async def get_user_birthday_wall(
 async def get_birthday_wall(
     wall_code: str, 
     user_id: Optional[int] = None,
+    current_user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db)
 ):
     """Get birthday wall by public URL code (accessible even after close for archive viewing)"""
@@ -389,6 +390,17 @@ async def get_birthday_wall(
     now = datetime.utcnow()
     is_open = wall.opens_at <= now <= wall.closes_at
     is_archived = now > wall.closes_at
+    
+    # ENFORCEMENT: If wall is archived, only the owner can access it
+    if is_archived:
+        # Get requesting user ID from authenticated user or query param
+        requesting_user_id = current_user.id if current_user else user_id
+        
+        if not requesting_user_id or requesting_user_id != wall.owner_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="After closure, the Birthday Wall becomes archived and visible only to the celebrant."
+            )
     
     # Get photos (include unapproved for owner, approved for others)
     if user_id and wall.owner_id == user_id:
