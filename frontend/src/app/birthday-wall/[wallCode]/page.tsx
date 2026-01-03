@@ -175,6 +175,9 @@ export default function BirthdayWallPage() {
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault(); // Prevent any potential form submission
+    e.stopPropagation(); // Stop event bubbling
+    
     const file = e.target.files?.[0];
     if (!file || !user || !wall) return;
 
@@ -185,6 +188,10 @@ export default function BirthdayWallPage() {
     }
 
     setUploading(true);
+    
+    // SAVE the frame picker state before upload
+    const wasFramePickerOpen = showFramePicker;
+    
     try {
       console.log('Starting photo upload...', { fileName: file.name, fileSize: file.size });
       
@@ -200,7 +207,13 @@ export default function BirthdayWallPage() {
       
       console.log('Photo upload successful!');
       toast.success('Photo uploaded! 📸');
-      fetchWall();
+      
+      await fetchWall();
+      
+      // RESTORE the frame picker state after fetchWall
+      if (wasFramePickerOpen) {
+        setShowFramePicker(true);
+      }
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       console.error('Error details:', {
@@ -648,7 +661,9 @@ export default function BirthdayWallPage() {
               <div className="mb-3 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     setShowFramePicker(!showFramePicker);
                   }}
                   className={`px-4 py-2 rounded-lg bg-primary-100 text-primary-700 hover:bg-primary-200 transition-colors ${isMobile ? 'text-xs' : 'text-sm'}`}
