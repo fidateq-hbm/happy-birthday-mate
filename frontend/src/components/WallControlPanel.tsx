@@ -110,10 +110,10 @@ export function WallControlPanel({
             
             {/* Panel */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : -20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : -20 }}
-              className={`fixed ${isMobile ? 'top-[10vh] left-1/2 -translate-x-1/2 max-h-[80vh] w-[95vw] max-w-[420px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[500px]'} z-[60] rounded-3xl ${isMobile ? '' : ''} ${isMobile ? 'p-5 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className={`fixed ${isMobile ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[70vh] w-[85vw] max-w-[340px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[500px]'} z-[60] rounded-2xl ${isMobile ? '' : ''} ${isMobile ? 'p-4 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -165,9 +165,9 @@ export function WallControlPanel({
 
               {/* Upload Permission - Show when uploads are enabled and not sealed */}
               {localUploadsEnabled && !localIsSealed && (
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold mb-3 text-gray-900">Who Can Upload?</label>
-                  <div className="space-y-2">
+                <div className={isMobile ? 'mb-4' : 'mb-6'}>
+                  <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-semibold ${isMobile ? 'mb-2' : 'mb-3'} text-gray-900`}>Who Can Upload?</label>
+                  <div className={isMobile ? 'space-y-1.5' : 'space-y-2'}>
                     {['none', 'birthday_mates', 'invited_guests', 'both'].map((permission) => (
                       <button
                         key={permission}
@@ -176,19 +176,19 @@ export function WallControlPanel({
                           handleUpdate({ upload_permission: permission });
                         }}
                         disabled={loading}
-                        className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
+                        className={`w-full ${isMobile ? 'p-2 text-xs' : 'p-3'} rounded-lg border-2 transition-all text-left ${
                           localUploadPermission === permission
                             ? 'border-primary-500 bg-primary-50'
                             : 'border-gray-200 hover:border-gray-300 bg-white'
                         } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                          <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} rounded-full border-2 flex-shrink-0 ${
                             localUploadPermission === permission
                               ? 'border-primary-500 bg-primary-500'
                               : 'border-gray-300 bg-white'
                           }`} />
-                          <span className="font-medium text-gray-900">{permissionLabels[permission]}</span>
+                          <span className={`${isMobile ? 'text-xs' : ''} font-medium text-gray-900`}>{permissionLabels[permission]}</span>
                         </div>
                       </button>
                     ))}
@@ -198,25 +198,25 @@ export function WallControlPanel({
 
               {/* Pause Uploads */}
               {localUploadsEnabled && !localIsSealed && (
-                <div className="mb-6">
+                <div className={isMobile ? 'mb-4' : 'mb-6'}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleUpdate({ upload_paused: !localUploadPaused });
                     }}
                     disabled={loading}
-                    className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                    className={`w-full ${isMobile ? 'p-2.5' : 'p-4'} rounded-lg border-2 transition-all flex items-center gap-3 ${
                       localUploadPaused
                         ? 'border-amber-300 bg-amber-50'
                         : 'border-gray-200 hover:border-gray-300'
                     } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
-                    <Pause className={`w-5 h-5 ${localUploadPaused ? 'text-amber-600' : 'text-gray-600'}`} />
+                    <Pause className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ${localUploadPaused ? 'text-amber-600' : 'text-gray-600'}`} />
                     <div className="text-left flex-1">
-                      <p className="font-semibold">
+                      <p className={`${isMobile ? 'text-xs' : ''} font-semibold`}>
                         {localUploadPaused ? 'Resume Uploads' : 'Pause Uploads'}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}>
                         {localUploadPaused ? 'Click to resume uploads' : 'Temporarily pause uploads'}
                       </p>
                     </div>
@@ -225,8 +225,8 @@ export function WallControlPanel({
               )}
 
               {/* Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-sm text-blue-900">
+              <div className={`bg-blue-50 border border-blue-200 ${isMobile ? 'rounded-lg p-2.5' : 'rounded-xl p-4'}`}>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-blue-900`}>
                   <strong>Note:</strong> By default, uploads are disabled. Enable uploads and choose who can contribute to your wall.
                 </p>
               </div>
