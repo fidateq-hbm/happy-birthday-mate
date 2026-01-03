@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { roomAPI, uploadAPI } from '@/lib/api';
-import { ArrowLeft, Upload, Heart, Smile, ThumbsUp, Share2, Eye, Flag, MoreVertical, Trash2, Edit2, X, Check } from 'lucide-react';
+import { ArrowLeft, Upload, Heart, Smile, ThumbsUp, Share2, Eye, Flag, MoreVertical, Trash2, Edit2, X, Check, Palette } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
