@@ -110,10 +110,10 @@ export function WallControlPanel({
             
             {/* Panel */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : -20 }}
+              initial={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: isMobile ? 20 : -20 }}
-              className={`fixed ${isMobile ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[85vh] w-[90vw] max-w-[400px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[500px]'} z-[60] rounded-3xl ${isMobile ? '' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
+              exit={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : -20 }}
+              className={`fixed ${isMobile ? 'top-[10vh] left-1/2 -translate-x-1/2 max-h-[80vh] w-[95vw] max-w-[420px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[500px]'} z-[60] rounded-3xl ${isMobile ? '' : ''} ${isMobile ? 'p-5 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -163,7 +163,7 @@ export function WallControlPanel({
                 </label>
               </div>
 
-              {/* Upload Permission - Always show when uploads are enabled */}
+              {/* Upload Permission - Show when uploads are enabled and not sealed */}
               {localUploadsEnabled && !localIsSealed && (
                 <div className="mb-6">
                   <label className="block text-sm font-semibold mb-3 text-gray-900">Who Can Upload?</label>
