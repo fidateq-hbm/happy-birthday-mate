@@ -174,6 +174,49 @@ export default function BirthdayWallPage() {
     }
   };
 
+  // Refresh wall without setting loading state (for updates that shouldn't show loading spinner)
+  const refreshWall = async () => {
+    try {
+      // Preserve dialog states before refresh
+      const preservedStates = {
+        showFramePicker,
+        showShareDialog,
+        editingPhotoId,
+        changingFramePhotoId
+      };
+
+      const response = await roomAPI.getBirthdayWall(wallCode, user?.id);
+      setWall(response.data);
+      
+      // EME Phase 1: Fetch upload status
+      if (user && response.data.wall_id) {
+        try {
+          const statusResponse = await roomAPI.getUploadStatus(response.data.wall_id);
+          setUploadStatus(statusResponse.data);
+        } catch (error) {
+          console.error('Error fetching upload status:', error);
+        }
+      }
+
+      // Restore dialog states after refresh
+      if (preservedStates.showFramePicker) {
+        setShowFramePicker(true);
+      }
+      if (preservedStates.showShareDialog) {
+        setShowShareDialog(true);
+      }
+      if (preservedStates.editingPhotoId) {
+        setEditingPhotoId(preservedStates.editingPhotoId);
+      }
+      if (preservedStates.changingFramePhotoId) {
+        setChangingFramePhotoId(preservedStates.changingFramePhotoId);
+      }
+    } catch (error) {
+      console.error('Error refreshing wall:', error);
+      // Don't navigate on refresh errors, just log
+    }
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault(); // Prevent any potential form submission
     e.stopPropagation(); // Stop event bubbling
@@ -208,9 +251,9 @@ export default function BirthdayWallPage() {
       console.log('Photo upload successful!');
       toast.success('Photo uploaded! 📸');
       
-      await fetchWall();
+      await refreshWall();
       
-      // RESTORE the frame picker state after fetchWall
+      // RESTORE the frame picker state after refreshWall
       if (wasFramePickerOpen) {
         setShowFramePicker(true);
       }
@@ -319,8 +362,40 @@ export default function BirthdayWallPage() {
     try {
       await roomAPI.addPhotoReaction(wall.wall_id, photoId, emoji, user.id);
       
-      // Refresh wall to get updated reactions
-      await fetchWall();
+      // Optimize: Update reactions locally instead of full refetch
+      if (wall.photos) {
+        const updatedPhotos = wall.photos.map(photo => {
+          if (photo.id === photoId) {
+            const updatedReactions = { ...photo.reactions };
+            const currentCount = updatedReactions[emoji as keyof typeof updatedReactions] || 0;
+            
+            // Toggle reaction: if user already reacted, remove it; otherwise add it
+            const userReacted = photo.user_reacted || [];
+            const hasReacted = userReacted.includes(emoji);
+            
+            if (hasReacted) {
+              // Remove reaction
+              updatedReactions[emoji as keyof typeof updatedReactions] = Math.max(0, currentCount - 1);
+              return {
+                ...photo,
+                reactions: updatedReactions,
+                user_reacted: userReacted.filter(e => e !== emoji)
+              };
+            } else {
+              // Add reaction
+              updatedReactions[emoji as keyof typeof updatedReactions] = currentCount + 1;
+              return {
+                ...photo,
+                reactions: updatedReactions,
+                user_reacted: [...userReacted, emoji]
+              };
+            }
+          }
+          return photo;
+        });
+        
+        setWall({ ...wall, photos: updatedPhotos });
+      }
     } catch (error: any) {
       console.error('Error adding reaction:', error);
       let errorMessage = 'Failed to add reaction';
@@ -328,6 +403,9 @@ export default function BirthdayWallPage() {
         errorMessage = error.response.data.detail;
       }
       toast.error(errorMessage);
+      
+      // On error, refresh to get accurate state
+      await refreshWall();
     } finally {
       setReacting(null);
     }
@@ -573,7 +651,7 @@ export default function BirthdayWallPage() {
                 uploadPermission={wall.upload_permission || 'none'}
                 uploadPaused={wall.upload_paused || false}
                 isSealed={wall.is_sealed || false}
-                onUpdate={fetchWall}
+                onUpdate={refreshWall}
                 isMobile={isMobile}
               />
               {/* Share Button */}
