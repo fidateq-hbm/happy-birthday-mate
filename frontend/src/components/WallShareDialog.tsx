@@ -205,7 +205,11 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                 </a>
                 <a
                   href={`mailto:?subject=${encodeURIComponent(`${ownerName}'s Birthday Celebration`)}&body=${encodeURIComponent(shareMessage)}`}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="p-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all flex items-center justify-center gap-2"
                 >
                   <Mail className="w-5 h-5" />
