@@ -64,6 +64,11 @@ const FAQ_DATA: FAQItem[] = [
     question: 'Can others upload photos to my wall?',
     answer: 'Yes! While your wall is open (24 hours before to 48 hours after your birthday), anyone with the link can upload photos. After it closes, the wall becomes read-only and archived.'
   },
+  {
+    category: 'birthday-walls',
+    question: 'Who can view my archived birthday wall?',
+    answer: 'After closure, the Birthday Wall becomes archived and visible only to the celebrant. This ensures your memories remain private and personal. Only you can access your archived walls through the Wall Archive section in your dashboard.'
+  },
   
   // Tribes
   {
