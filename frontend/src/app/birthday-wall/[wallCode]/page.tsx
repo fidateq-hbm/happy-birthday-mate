@@ -14,7 +14,7 @@ import BirthdayWallBackground from '@/components/BirthdayWallBackground';
 import { ReportContentModal } from '@/components/ReportContentModal';
 import { normalizeImageUrl } from '@/utils/images';
 import { WallControlPanel } from '@/components/WallControlPanel';
-import { WallInvitationManager } from '@/components/WallInvitationManager';
+import { WallShareDialog } from '@/components/WallShareDialog';
 
 interface Photo {
   id: number;
@@ -70,6 +70,7 @@ export default function BirthdayWallPage() {
   const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
   const [changingFramePhotoId, setChangingFramePhotoId] = useState<number | null>(null);
   const [uploadStatus, setUploadStatus] = useState<any>(null); // EME Phase 1: Upload status
+  const [showShareDialog, setShowShareDialog] = useState(false); // Share dialog state
 
   const wallCode = params.wallCode as string;
   
@@ -537,7 +538,7 @@ export default function BirthdayWallPage() {
             </div>
           )}
 
-          {/* EME Phase 1: Control Panel & Invitation Manager (Owner Only) */}
+          {/* EME Phase 1: Control Panel & Share Dialog (Owner Only) */}
           {isWallOwner && !wall.is_archived && (
             <>
               <WallControlPanel
@@ -550,10 +551,20 @@ export default function BirthdayWallPage() {
                 onUpdate={fetchWall}
                 isMobile={isMobile}
               />
-              <WallInvitationManager
-                wallId={wall.wall_id}
-                isOwner={true}
-                onUpdate={fetchWall}
+              {/* Share Button */}
+              <button
+                onClick={() => setShowShareDialog(true)}
+                className={`fixed ${isMobile ? 'bottom-32 right-4' : 'top-20 right-20'} z-40 bg-purple-600 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all`}
+                title="Share Birthday Wall"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+              <WallShareDialog
+                wallCode={wallCode}
+                wallTitle={wall.title}
+                ownerName={wall.owner_name}
+                isOpen={showShareDialog}
+                onClose={() => setShowShareDialog(false)}
                 isMobile={isMobile}
               />
             </>
