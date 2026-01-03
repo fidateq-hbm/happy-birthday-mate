@@ -110,9 +110,9 @@ export function WallControlPanel({
             
             {/* Panel */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : 20 }}
+              exit={{ opacity: 0, scale: 0.95, y: isMobile ? 100 : -20 }}
               className={`fixed ${isMobile ? 'bottom-0 left-0 right-0 max-h-[90vh]' : 'top-[5vh] left-1/2 -translate-x-1/2 max-h-[85vh]'} z-[60] rounded-3xl ${isMobile ? 'rounded-b-none' : ''} ${isMobile ? 'p-6 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200 ${isMobile ? 'w-full' : 'w-[90vw] max-w-[500px]'}`}
               onClick={(e) => {
                 e.stopPropagation();
