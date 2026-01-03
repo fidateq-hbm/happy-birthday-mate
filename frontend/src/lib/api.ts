@@ -108,15 +108,13 @@ export const roomAPI = {
       frame_style: frameStyle || "none"
     }),
     addPhotoReaction: (wallId: number, photoId: number, emoji: string, userId: number) =>
-    api.post(`/rooms/birthday-wall/${wallId}/photos/${photoId}/reactions?user_id=${userId}`, {
-      emoji
-    }),
+      api.post(`/rooms/birthday-wall/${wallId}/photos/${photoId}/reactions?user_id=${userId}`, {
+        emoji
+      }),
     deletePhoto: (wallId: number, photoId: number) =>
       api.delete(`/rooms/birthday-wall/${wallId}/photos/${photoId}`),
     updatePhoto: (wallId: number, photoId: number, data: { caption?: string; frame_style?: string }) =>
       api.patch(`/rooms/birthday-wall/${wallId}/photos/${photoId}`, data),
-      emoji
-    }),
 };
 
 // Gift endpoints
