@@ -344,9 +344,12 @@ export default function BirthdayWallPage() {
     }
   };
 
-  const handleStartEdit = (photo: Photo) => {
-    setEditingPhotoId(photo.id);
-    setEditingCaption(photo.caption || '');
+  const handleStartEdit = (photoId: number) => {
+    const photo = wall?.photos.find(p => p.id === photoId);
+    if (photo) {
+      setEditingPhotoId(photo.id);
+      setEditingCaption(photo.caption || '');
+    }
   };
 
   const handleCancelEdit = () => {
