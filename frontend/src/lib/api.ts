@@ -115,6 +115,17 @@ export const roomAPI = {
       api.delete(`/rooms/birthday-wall/${wallId}/photos/${photoId}`),
     updatePhoto: (wallId: number, photoId: number, data: { caption?: string; frame_style?: string }) =>
       api.patch(`/rooms/birthday-wall/${wallId}/photos/${photoId}`, data),
+  // EME Phase 1: Invitation and Upload Control
+  inviteToWall: (wallId: number, data: { invited_user_id?: number; invited_email?: string; invited_name?: string; invitation_type: string }) =>
+    api.post(`/rooms/birthday-wall/${wallId}/invite`, data),
+  getWallInvitations: (wallId: number) =>
+    api.get(`/rooms/birthday-wall/${wallId}/invitations`),
+  acceptWallInvitation: (invitationCode: string) =>
+    api.post(`/rooms/birthday-wall/invite/accept/${invitationCode}`),
+  updateUploadControl: (wallId: number, data: { uploads_enabled?: boolean; upload_permission?: string; upload_paused?: boolean; is_sealed?: boolean }) =>
+    api.patch(`/rooms/birthday-wall/${wallId}/upload-control`, data),
+  getUploadStatus: (wallId: number) =>
+    api.get(`/rooms/birthday-wall/${wallId}/upload-status`),
 };
 
 // Gift endpoints

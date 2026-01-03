@@ -68,6 +68,13 @@ class BirthdayWall(Base):
     max_photos = Column(Integer, default=50)
     allow_reactions = Column(Boolean, default=True)
     
+    # Upload Control (EME Phase 1)
+    uploads_enabled = Column(Boolean, default=False)  # Opt-in model: default no uploads
+    upload_permission = Column(String, default="none")  # 'none', 'birthday_mates', 'invited_guests', 'both'
+    upload_paused = Column(Boolean, default=False)  # Temporary pause without closing
+    is_sealed = Column(Boolean, default=False)  # Final seal - immutable
+    sealed_at = Column(DateTime, nullable=True)
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -75,6 +82,8 @@ class BirthdayWall(Base):
     # Relationships
     owner = relationship("User", back_populates="birthday_walls")
     photos = relationship("WallPhoto", back_populates="wall", cascade="all, delete-orphan")
+    invitations = relationship("WallInvitation", back_populates="wall", cascade="all, delete-orphan")
+    upload_tracking = relationship("WallUpload", back_populates="wall", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<BirthdayWall {self.id} for user {self.owner_id}>"
@@ -130,4 +139,70 @@ class PhotoReaction(Base):
     
     def __repr__(self):
         return f"<PhotoReaction {self.emoji}>"
+
+
+class WallInvitation(Base):
+    """Track invitations to Birthday Walls (EME Phase 1)"""
+    __tablename__ = "wall_invitations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    wall_id = Column(Integer, ForeignKey("birthday_walls.id"), nullable=False)
+    
+    # Invited user (for birthday mates or registered guests)
+    invited_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    # For non-registered guests
+    invited_email = Column(String, nullable=True)
+    invited_name = Column(String, nullable=True)  # Guest name
+    
+    # Invitation details
+    invitation_type = Column(String, nullable=False)  # 'birthday_mate', 'guest'
+    invitation_code = Column(String, unique=True, nullable=False, index=True)
+    
+    # Who sent the invitation
+    invited_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # Status
+    accepted_at = Column(DateTime, nullable=True)
+    is_accepted = Column(Boolean, default=False)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)  # Optional expiration
+    
+    # Relationships
+    wall = relationship("BirthdayWall", back_populates="invitations")
+    invited_user = relationship("User", foreign_keys=[invited_user_id])
+    invited_by = relationship("User", foreign_keys=[invited_by_user_id])
+    
+    def __repr__(self):
+        return f"<WallInvitation {self.id} for wall {self.wall_id}>"
+
+
+class WallUpload(Base):
+    """Track uploads to enforce 1 upload per person limit (EME Phase 1)"""
+    __tablename__ = "wall_uploads"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    wall_id = Column(Integer, ForeignKey("birthday_walls.id"), nullable=False)
+    
+    # Uploader identification
+    uploader_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # For registered users
+    uploader_email = Column(String, nullable=True)  # For guests
+    uploader_name = Column(String, nullable=True)  # For guests
+    
+    # Upload tracking
+    upload_type = Column(String, nullable=False)  # 'photo', 'card', 'gift'
+    upload_count = Column(Integer, default=1)  # Should always be 1, but track for safety
+    last_upload_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    wall = relationship("BirthdayWall", back_populates="upload_tracking")
+    uploader = relationship("User", foreign_keys=[uploader_user_id])
+    
+    def __repr__(self):
+        return f"<WallUpload {self.id} on wall {self.wall_id}>"
 

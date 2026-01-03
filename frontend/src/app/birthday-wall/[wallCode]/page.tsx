@@ -13,6 +13,8 @@ import { MobileBottomNav } from '@/components/MobileBottomNav';
 import BirthdayWallBackground from '@/components/BirthdayWallBackground';
 import { ReportContentModal } from '@/components/ReportContentModal';
 import { normalizeImageUrl } from '@/utils/images';
+import { WallControlPanel } from '@/components/WallControlPanel';
+import { WallInvitationManager } from '@/components/WallInvitationManager';
 
 interface Photo {
   id: number;
@@ -44,6 +46,11 @@ interface Wall {
   is_archived?: boolean;
   birthday_year?: number;
   photos: Photo[];
+  // EME Phase 1: Upload control
+  uploads_enabled?: boolean;
+  upload_permission?: string;
+  upload_paused?: boolean;
+  is_sealed?: boolean;
 }
 
 export default function BirthdayWallPage() {
@@ -62,8 +69,11 @@ export default function BirthdayWallPage() {
   const [editingCaption, setEditingCaption] = useState<string>('');
   const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
   const [changingFramePhotoId, setChangingFramePhotoId] = useState<number | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<any>(null); // EME Phase 1: Upload status
 
   const wallCode = params.wallCode as string;
+  
+  const isWallOwner = user && wall && wall.owner_name === user.first_name;
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -134,6 +144,16 @@ export default function BirthdayWallPage() {
           original_url: p.photo_url,
           normalized_url: normalizeImageUrl(p.photo_url)
         })));
+      }
+      
+      // EME Phase 1: Fetch upload status
+      if (user && response.data.wall_id) {
+        try {
+          const statusResponse = await roomAPI.getUploadStatus(response.data.wall_id);
+          setUploadStatus(statusResponse.data);
+        } catch (error) {
+          console.error('Error fetching upload status:', error);
+        }
       }
     } catch (error) {
       console.error('Error fetching wall:', error);
@@ -517,9 +537,63 @@ export default function BirthdayWallPage() {
             </div>
           )}
 
-          {/* Upload Section - Only show when wall is open */}
+          {/* EME Phase 1: Control Panel & Invitation Manager (Owner Only) */}
+          {isWallOwner && !wall.is_archived && (
+            <>
+              <WallControlPanel
+                wallId={wall.wall_id}
+                isOwner={true}
+                uploadsEnabled={wall.uploads_enabled || false}
+                uploadPermission={wall.upload_permission || 'none'}
+                uploadPaused={wall.upload_paused || false}
+                isSealed={wall.is_sealed || false}
+                onUpdate={fetchWall}
+                isMobile={isMobile}
+              />
+              <WallInvitationManager
+                wallId={wall.wall_id}
+                isOwner={true}
+                onUpdate={fetchWall}
+                isMobile={isMobile}
+              />
+            </>
+          )}
+
+          {/* Upload Section - Only show when wall is open and user can upload */}
           {user && wall.is_active && wall.is_open && !wall.is_archived && (
             <div className={`mb-6 ${isMobile ? 'mb-6' : 'mb-8'} relative z-20`}>
+              {/* EME Phase 1: Upload Permission Messages */}
+              {!isWallOwner && (
+                <>
+                  {!wall.uploads_enabled && (
+                    <div className="glass-effect rounded-xl p-4 mb-4 border-2 border-amber-300 bg-amber-50/50">
+                      <p className={`text-center text-amber-800 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                        📸 Uploads are currently disabled for this wall. The celebrant must enable uploads first.
+                      </p>
+                    </div>
+                  )}
+                  {wall.uploads_enabled && wall.upload_paused && (
+                    <div className="glass-effect rounded-xl p-4 mb-4 border-2 border-amber-300 bg-amber-50/50">
+                      <p className={`text-center text-amber-800 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                        ⏸️ Uploads are currently paused by the celebrant.
+                      </p>
+                    </div>
+                  )}
+                  {wall.uploads_enabled && !wall.upload_paused && uploadStatus && !uploadStatus.can_upload && (
+                    <div className="glass-effect rounded-xl p-4 mb-4 border-2 border-red-300 bg-red-50/50">
+                      <p className={`text-center text-red-800 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                        {uploadStatus.has_uploaded 
+                          ? '✅ You have already uploaded to this wall. Each person can only upload once.'
+                          : '🔒 You need to be invited by the celebrant to upload to this wall.'}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {/* Upload UI - Only show if user can upload */}
+              {((isWallOwner) || (uploadStatus && uploadStatus.can_upload && !uploadStatus.has_uploaded)) && (
+                <>
               {/* Frame Picker */}
               {showFramePicker && (
                 <div className="glass-effect rounded-xl p-4 mb-4 border-2 border-primary-200">
@@ -579,6 +653,8 @@ export default function BirthdayWallPage() {
                 />
                 {uploading && <p className="text-sm text-primary-600 mt-2">Uploading...</p>}
               </label>
+                </>
+              )}
             </div>
           )}
 

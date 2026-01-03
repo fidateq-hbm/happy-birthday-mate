@@ -8,7 +8,7 @@ import secrets
 from app.core.database import get_db
 from app.core.auth import get_current_user, get_optional_user
 from app.core.security import limiter, sanitize_input
-from app.models import Room, RoomParticipant, Message, User, RoomTypeEnum, BirthdayWall, WallPhoto, WallThemeEnum, PhotoReaction, BackgroundAnimationEnum
+from app.models import Room, RoomParticipant, Message, User, RoomTypeEnum, BirthdayWall, WallPhoto, WallThemeEnum, PhotoReaction, BackgroundAnimationEnum, WallInvitation, WallUpload
 
 router = APIRouter()
 
@@ -39,6 +39,21 @@ class AddPhotoReactionRequest(BaseModel):
 class UpdatePhotoRequest(BaseModel):
     caption: Optional[str] = None
     frame_style: Optional[str] = None
+
+
+# EME Phase 1: Invitation and Upload Control Models
+class InviteToWallRequest(BaseModel):
+    invited_user_id: Optional[int] = None  # For birthday mates
+    invited_email: Optional[str] = None  # For guests
+    invited_name: Optional[str] = None  # For guests
+    invitation_type: str  # 'birthday_mate' or 'guest'
+
+
+class UpdateUploadControlRequest(BaseModel):
+    uploads_enabled: Optional[bool] = None
+    upload_permission: Optional[str] = None  # 'none', 'birthday_mates', 'invited_guests', 'both'
+    upload_paused: Optional[bool] = None
+    is_sealed: Optional[bool] = None  # Final seal
 
 
 @router.post("/personal")
@@ -363,7 +378,12 @@ async def get_user_birthday_wall(
         "birthday_year": wall.birthday_year,
         "opens_at": wall.opens_at,
         "closes_at": wall.closes_at,
-        "photos": photo_data
+        "photos": photo_data,
+        # EME Phase 1: Upload control info
+        "uploads_enabled": wall.uploads_enabled,
+        "upload_permission": wall.upload_permission,
+        "upload_paused": wall.upload_paused,
+        "is_sealed": wall.is_sealed
     }
 
 
@@ -477,7 +497,12 @@ async def get_birthday_wall(
         "birthday_year": wall.birthday_year,
         "opens_at": wall.opens_at,
         "closes_at": wall.closes_at,
-        "photos": photo_data
+        "photos": photo_data,
+        # EME Phase 1: Upload control info
+        "uploads_enabled": wall.uploads_enabled,
+        "upload_permission": wall.upload_permission,
+        "upload_paused": wall.upload_paused,
+        "is_sealed": wall.is_sealed
     }
 
 
@@ -517,6 +542,86 @@ async def upload_photo_to_wall(
             detail="Birthday wall is not active"
         )
     
+    # EME Phase 1: Check upload permissions
+    if wall.is_sealed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This wall is sealed and no longer accepts uploads."
+        )
+    
+    if not wall.uploads_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Uploads are not enabled for this wall. The celebrant must enable uploads first."
+        )
+    
+    if wall.upload_paused:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Uploads are currently paused by the celebrant."
+        )
+    
+    # Check if user has permission to upload
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Check invitation/permission
+    has_permission = False
+    is_birthday_mate = False
+    is_invited = False
+    
+    # Check if user is birthday mate (same tribe)
+    if wall.owner_id != user_id:
+        owner = db.query(User).filter(User.id == wall.owner_id).first()
+        if owner and owner.tribe_id == user.tribe_id:
+            is_birthday_mate = True
+        
+        # Check if user has accepted invitation
+        invitation = db.query(WallInvitation).filter(
+            WallInvitation.wall_id == wall_id,
+            WallInvitation.invited_user_id == user_id,
+            WallInvitation.is_accepted == True
+        ).first()
+        if invitation:
+            is_invited = True
+    
+    # Determine permission based on upload_permission setting
+    if wall.upload_permission == "none":
+        has_permission = False
+    elif wall.upload_permission == "birthday_mates" and is_birthday_mate:
+        has_permission = True
+    elif wall.upload_permission == "invited_guests" and is_invited:
+        has_permission = True
+    elif wall.upload_permission == "both" and (is_birthday_mate or is_invited):
+        has_permission = True
+    
+    # Owner can always upload
+    if wall.owner_id == user_id:
+        has_permission = True
+    
+    if not has_permission:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to upload to this wall. You need to be invited by the celebrant."
+        )
+    
+    # EME Phase 1: Check upload limit (1 upload per person)
+    existing_upload = db.query(WallUpload).filter(
+        WallUpload.wall_id == wall_id,
+        WallUpload.uploader_user_id == user_id,
+        WallUpload.upload_type == "photo"
+    ).first()
+    
+    if existing_upload:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You have already uploaded to this wall. Each person can only upload once."
+        )
+    
     # Check photo limit
     photo_count = db.query(WallPhoto).filter(WallPhoto.wall_id == wall_id).count()
     if photo_count >= wall.max_photos:
@@ -544,6 +649,19 @@ async def upload_photo_to_wall(
         is_approved=True  # Auto-approve photos uploaded by the wall owner
     )
     db.add(photo)
+    
+    # EME Phase 1: Track upload to enforce limit
+    wall_upload = WallUpload(
+        wall_id=wall_id,
+        uploader_user_id=user_id,
+        uploader_email=user.email if user else None,
+        uploader_name=user.first_name if user else "Guest",
+        upload_type="photo",
+        upload_count=1,
+        last_upload_at=datetime.utcnow()
+    )
+    db.add(wall_upload)
+    
     db.commit()
     db.refresh(photo)
     
@@ -796,5 +914,353 @@ async def get_user_wall_archive(
     return {
         "archive": archive_list,
         "total_walls": len(walls)
+    }
+
+
+# ========== EME Phase 1: Invitation and Upload Control Endpoints ==========
+
+@router.post("/birthday-wall/{wall_id}/invite")
+async def invite_to_wall(
+    wall_id: int,
+    invite_request: InviteToWallRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Invite a birthday mate or guest to upload to the wall (EME Phase 1)"""
+    
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # Only wall owner can invite
+    if wall.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the wall owner can send invitations"
+        )
+    
+    # Validate invitation type
+    if invite_request.invitation_type not in ['birthday_mate', 'guest']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid invitation type. Must be 'birthday_mate' or 'guest'"
+        )
+    
+    # For birthday mates, require user_id
+    if invite_request.invitation_type == 'birthday_mate':
+        if not invite_request.invited_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="invited_user_id is required for birthday mate invitations"
+            )
+        
+        # Verify user is a birthday mate (same tribe)
+        invited_user = db.query(User).filter(User.id == invite_request.invited_user_id).first()
+        if not invited_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invited user not found"
+            )
+        
+        if invited_user.tribe_id != current_user.tribe_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not a birthday mate (different birthday)"
+            )
+        
+        # Check if already invited
+        existing = db.query(WallInvitation).filter(
+            WallInvitation.wall_id == wall_id,
+            WallInvitation.invited_user_id == invite_request.invited_user_id
+        ).first()
+        
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User has already been invited to this wall"
+            )
+    
+    # For guests, require email
+    elif invite_request.invitation_type == 'guest':
+        if not invite_request.invited_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="invited_email is required for guest invitations"
+            )
+        
+        # Check if email already invited
+        existing = db.query(WallInvitation).filter(
+            WallInvitation.wall_id == wall_id,
+            WallInvitation.invited_email == invite_request.invited_email
+        ).first()
+        
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This email has already been invited to this wall"
+            )
+    
+    # Generate invitation code
+    invitation_code = secrets.token_urlsafe(16)
+    
+    # Create invitation
+    invitation = WallInvitation(
+        wall_id=wall_id,
+        invited_user_id=invite_request.invited_user_id,
+        invited_email=invite_request.invited_email,
+        invited_name=invite_request.invited_name,
+        invitation_type=invite_request.invitation_type,
+        invitation_code=invitation_code,
+        invited_by_user_id=current_user.id,
+        is_accepted=False
+    )
+    
+    db.add(invitation)
+    db.commit()
+    db.refresh(invitation)
+    
+    return {
+        "invitation_id": invitation.id,
+        "invitation_code": invitation_code,
+        "message": "Invitation sent successfully"
+    }
+
+
+@router.get("/birthday-wall/{wall_id}/invitations")
+async def get_wall_invitations(
+    wall_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all invitations for a wall (owner only)"""
+    
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # Only wall owner can view invitations
+    if wall.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the wall owner can view invitations"
+        )
+    
+    invitations = db.query(WallInvitation).filter(
+        WallInvitation.wall_id == wall_id
+    ).order_by(WallInvitation.created_at.desc()).all()
+    
+    return {
+        "invitations": [
+            {
+                "id": inv.id,
+                "invited_user_id": inv.invited_user_id,
+                "invited_email": inv.invited_email,
+                "invited_name": inv.invited_name,
+                "invitation_type": inv.invitation_type,
+                "is_accepted": inv.is_accepted,
+                "accepted_at": inv.accepted_at.isoformat() if inv.accepted_at else None,
+                "created_at": inv.created_at.isoformat()
+            }
+            for inv in invitations
+        ]
+    }
+
+
+@router.post("/birthday-wall/invite/accept/{invitation_code}")
+async def accept_wall_invitation(
+    invitation_code: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Accept a wall invitation (in-app for birthday mates)"""
+    
+    invitation = db.query(WallInvitation).filter(
+        WallInvitation.invitation_code == invitation_code
+    ).first()
+    
+    if not invitation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invitation not found"
+        )
+    
+    # Check if already accepted
+    if invitation.is_accepted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invitation has already been accepted"
+        )
+    
+    # For birthday mates, verify user matches
+    if invitation.invitation_type == 'birthday_mate':
+        if invitation.invited_user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This invitation is not for you"
+            )
+    
+    # Accept invitation
+    invitation.is_accepted = True
+    invitation.accepted_at = datetime.utcnow()
+    
+    # If guest invitation, link to user account if they register
+    if invitation.invitation_type == 'guest' and not invitation.invited_user_id:
+        # Check if email matches current user
+        if current_user.email == invitation.invited_email:
+            invitation.invited_user_id = current_user.id
+    
+    db.commit()
+    
+    # Get wall info
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == invitation.wall_id).first()
+    
+    return {
+        "message": "Invitation accepted successfully",
+        "wall_id": wall.id,
+        "public_url_code": wall.public_url_code
+    }
+
+
+@router.patch("/birthday-wall/{wall_id}/upload-control")
+async def update_upload_control(
+    wall_id: int,
+    control_request: UpdateUploadControlRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update wall upload control settings (owner only)"""
+    
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # Only wall owner can update settings
+    if wall.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the wall owner can update upload settings"
+        )
+    
+    # Update fields if provided
+    if control_request.uploads_enabled is not None:
+        wall.uploads_enabled = control_request.uploads_enabled
+    
+    if control_request.upload_permission is not None:
+        valid_permissions = ['none', 'birthday_mates', 'invited_guests', 'both']
+        if control_request.upload_permission not in valid_permissions:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid upload_permission. Must be one of: {', '.join(valid_permissions)}"
+            )
+        wall.upload_permission = control_request.upload_permission
+    
+    if control_request.upload_paused is not None:
+        wall.upload_paused = control_request.upload_paused
+    
+    if control_request.is_sealed is not None:
+        if control_request.is_sealed and not wall.is_sealed:
+            # Sealing the wall
+            wall.is_sealed = True
+            wall.sealed_at = datetime.utcnow()
+            wall.uploads_enabled = False  # Disable uploads when sealed
+        elif not control_request.is_sealed:
+            # Unsealing (only if not past close date)
+            now = datetime.utcnow()
+            if now > wall.closes_at:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot unseal a wall that has passed its close date"
+                )
+            wall.is_sealed = False
+            wall.sealed_at = None
+    
+    db.commit()
+    db.refresh(wall)
+    
+    return {
+        "message": "Upload control updated successfully",
+        "uploads_enabled": wall.uploads_enabled,
+        "upload_permission": wall.upload_permission,
+        "upload_paused": wall.upload_paused,
+        "is_sealed": wall.is_sealed
+    }
+
+
+@router.get("/birthday-wall/{wall_id}/upload-status")
+async def get_upload_status(
+    wall_id: int,
+    current_user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    """Get upload status and permissions for current user"""
+    
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # Check if user has uploaded already
+    has_uploaded = False
+    if current_user:
+        existing_upload = db.query(WallUpload).filter(
+            WallUpload.wall_id == wall_id,
+            WallUpload.uploader_user_id == current_user.id
+        ).first()
+        has_uploaded = existing_upload is not None
+    
+    # Check if user has invitation
+    has_invitation = False
+    is_invitation_accepted = False
+    if current_user:
+        invitation = db.query(WallInvitation).filter(
+            WallInvitation.wall_id == wall_id,
+            WallInvitation.invited_user_id == current_user.id
+        ).first()
+        if invitation:
+            has_invitation = True
+            is_invitation_accepted = invitation.is_accepted
+    
+    # Check if user is birthday mate
+    is_birthday_mate = False
+    if current_user and wall.owner_id != current_user.id:
+        owner = db.query(User).filter(User.id == wall.owner_id).first()
+        if owner and owner.tribe_id == current_user.tribe_id:
+            is_birthday_mate = True
+    
+    # Determine if user can upload
+    can_upload = False
+    if current_user:
+        if wall.owner_id == current_user.id:
+            can_upload = True  # Owner can always upload
+        elif wall.uploads_enabled and not wall.upload_paused and not wall.is_sealed:
+            if wall.upload_permission == "birthday_mates" and is_birthday_mate:
+                can_upload = True
+            elif wall.upload_permission == "invited_guests" and is_invitation_accepted:
+                can_upload = True
+            elif wall.upload_permission == "both" and (is_birthday_mate or is_invitation_accepted):
+                can_upload = True
+    
+    return {
+        "uploads_enabled": wall.uploads_enabled,
+        "upload_permission": wall.upload_permission,
+        "upload_paused": wall.upload_paused,
+        "is_sealed": wall.is_sealed,
+        "can_upload": can_upload,
+        "has_uploaded": has_uploaded,
+        "has_invitation": has_invitation,
+        "is_invitation_accepted": is_invitation_accepted,
+        "is_birthday_mate": is_birthday_mate,
+        "is_owner": current_user and wall.owner_id == current_user.id if current_user else False
     }
 
