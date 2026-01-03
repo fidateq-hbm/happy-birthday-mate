@@ -140,7 +140,7 @@ async def upload_birthday_wall_photo(
     wall_dir.mkdir(parents=True, exist_ok=True)
     
     # Resize image to standard size
-    # Standard size: 520x486 pixels (landscape orientation)
+    # Standard size: 520x486 pixels (landscape orientation, aspect ratio ~1.07:1)
     TARGET_WIDTH = 520
     TARGET_HEIGHT = 486
     
