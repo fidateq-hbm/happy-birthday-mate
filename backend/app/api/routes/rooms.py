@@ -36,6 +36,11 @@ class AddPhotoReactionRequest(BaseModel):
     emoji: str
 
 
+class UpdatePhotoRequest(BaseModel):
+    caption: Optional[str] = None
+    frame_style: Optional[str] = None
+
+
 @router.post("/personal")
 @limiter.limit("10/hour")  # Rate limit room creation
 async def create_personal_birthday_room(
@@ -323,6 +328,7 @@ async def get_user_birthday_wall(
             "photo_url": photo.photo_url,
             "caption": photo.caption,
             "uploaded_by": photo.uploaded_by_name,
+            "uploaded_by_user_id": photo.uploaded_by_user_id,  # Include for ownership check
             "created_at": photo.created_at,
             "frame_style": photo.frame_style or "none",
             "reactions": reaction_counts,
@@ -429,6 +435,7 @@ async def get_birthday_wall(
             "photo_url": photo.photo_url,
             "caption": photo.caption,
             "uploaded_by": photo.uploaded_by_name,
+            "uploaded_by_user_id": photo.uploaded_by_user_id,  # Include for ownership check
             "created_at": photo.created_at,
             "frame_style": photo.frame_style or "none",
             "reactions": reaction_counts,
@@ -593,6 +600,124 @@ async def add_photo_reaction(
             "action": "added",
             "reaction_id": reaction.id
         }
+
+
+@router.delete("/birthday-wall/{wall_id}/photos/{photo_id}")
+async def delete_photo_from_wall(
+    wall_id: int,
+    photo_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a photo from birthday wall (only wall owner or photo uploader can delete)"""
+    
+    # Verify photo exists and belongs to wall
+    photo = db.query(WallPhoto).filter(
+        WallPhoto.id == photo_id,
+        WallPhoto.wall_id == wall_id
+    ).first()
+    
+    if not photo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Photo not found"
+        )
+    
+    # Verify wall exists
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # Check permissions: wall owner OR photo uploader can delete
+    is_wall_owner = wall.owner_id == current_user.id
+    is_photo_uploader = photo.uploaded_by_user_id == current_user.id
+    
+    if not (is_wall_owner or is_photo_uploader):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own photos or photos from your wall"
+        )
+    
+    # Delete photo reactions first (cascade should handle this, but explicit is better)
+    db.query(PhotoReaction).filter(PhotoReaction.photo_id == photo_id).delete()
+    
+    # Delete photo
+    db.delete(photo)
+    db.commit()
+    
+    return {
+        "message": "Photo deleted successfully",
+        "photo_id": photo_id
+    }
+
+
+@router.patch("/birthday-wall/{wall_id}/photos/{photo_id}")
+async def update_photo(
+    wall_id: int,
+    photo_id: int,
+    request: UpdatePhotoRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update photo caption or frame style (only wall owner or photo uploader can update)"""
+    
+    # Verify photo exists and belongs to wall
+    photo = db.query(WallPhoto).filter(
+        WallPhoto.id == photo_id,
+        WallPhoto.wall_id == wall_id
+    ).first()
+    
+    if not photo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Photo not found"
+        )
+    
+    # Verify wall exists
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # Check permissions: wall owner OR photo uploader can update
+    is_wall_owner = wall.owner_id == current_user.id
+    is_photo_uploader = photo.uploaded_by_user_id == current_user.id
+    
+    if not (is_wall_owner or is_photo_uploader):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own photos or photos from your wall"
+        )
+    
+    # Update caption if provided
+    if request.caption is not None:
+        photo.caption = sanitize_input(request.caption, max_length=500) if request.caption else None
+    
+    # Update frame style if provided
+    if request.frame_style is not None:
+        valid_frames = ["none", "classic", "elegant", "vintage", "modern", "gold", "rainbow", "polaroid"]
+        if request.frame_style in valid_frames:
+            photo.frame_style = request.frame_style
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid frame style. Allowed: {', '.join(valid_frames)}"
+            )
+    
+    db.commit()
+    db.refresh(photo)
+    
+    return {
+        "message": "Photo updated successfully",
+        "photo_id": photo.id,
+        "caption": photo.caption,
+        "frame_style": photo.frame_style
+    }
 
 
 @router.get("/birthday-wall/user/{user_id}/archive")

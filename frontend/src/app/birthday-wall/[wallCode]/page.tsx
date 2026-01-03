@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { roomAPI, uploadAPI } from '@/lib/api';
-import { ArrowLeft, Upload, Heart, Smile, ThumbsUp, Share2, Eye, Flag, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Upload, Heart, Smile, ThumbsUp, Share2, Eye, Flag, MoreVertical, Trash2, Edit2, X, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { MobileAppHeader } from '@/components/MobileAppHeader';
@@ -19,6 +19,7 @@ interface Photo {
   photo_url: string;
   caption: string;
   uploaded_by: string;
+  uploaded_by_user_id?: number;  // For ownership check
   created_at: string;
   frame_style?: string;
   reactions?: {
@@ -57,6 +58,9 @@ export default function BirthdayWallPage() {
   const [selectedFrame, setSelectedFrame] = useState<string>('none');
   const [showFramePicker, setShowFramePicker] = useState(false);
   const [reportingPhotoId, setReportingPhotoId] = useState<number | null>(null);
+  const [editingPhotoId, setEditingPhotoId] = useState<number | null>(null);
+  const [editingCaption, setEditingCaption] = useState<string>('');
+  const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
 
   const wallCode = params.wallCode as string;
 
@@ -283,6 +287,70 @@ export default function BirthdayWallPage() {
     } finally {
       setReacting(null);
     }
+  };
+
+  const handleDeletePhoto = async (photoId: number) => {
+    if (!user || !wall) return;
+    
+    if (!confirm('Are you sure you want to delete this photo?')) {
+      return;
+    }
+    
+    setDeletingPhotoId(photoId);
+    try {
+      await roomAPI.deletePhoto(wall.wall_id, photoId);
+      toast.success('Photo deleted successfully');
+      await fetchWall(); // Refresh wall
+    } catch (error: any) {
+      console.error('Error deleting photo:', error);
+      let errorMessage = 'Failed to delete photo';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setDeletingPhotoId(null);
+    }
+  };
+
+  const handleStartEdit = (photo: Photo) => {
+    setEditingPhotoId(photo.id);
+    setEditingCaption(photo.caption || '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPhotoId(null);
+    setEditingCaption('');
+  };
+
+  const handleSaveEdit = async (photoId: number) => {
+    if (!user || !wall) return;
+    
+    try {
+      await roomAPI.updatePhoto(wall.wall_id, photoId, {
+        caption: editingCaption.trim() || undefined
+      });
+      toast.success('Photo updated successfully');
+      setEditingPhotoId(null);
+      setEditingCaption('');
+      await fetchWall(); // Refresh wall
+    } catch (error: any) {
+      console.error('Error updating photo:', error);
+      let errorMessage = 'Failed to update photo';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
+  // Check if user can edit/delete a photo
+  const canEditPhoto = (photo: Photo): boolean => {
+    if (!user || !wall) return false;
+    // Wall owner or photo uploader can edit/delete
+    const isWallOwner = wall.owner_name === user.first_name; // Simple check, backend will verify
+    const isPhotoUploader = photo.uploaded_by_user_id === user.id;
+    return (isWallOwner || isPhotoUploader) && !wall.is_archived;
   };
 
   // Frame styling functions
@@ -532,12 +600,66 @@ export default function BirthdayWallPage() {
                         }}
                       />
                     </div>
-                    {photo.caption && (
-                      <p className={`${isMobile ? 'p-2 text-xs' : 'p-3 text-sm'}`}>{photo.caption}</p>
+                    {editingPhotoId === photo.id ? (
+                      <div className={`${isMobile ? 'p-2' : 'p-3'}`}>
+                        <textarea
+                          value={editingCaption}
+                          onChange={(e) => setEditingCaption(e.target.value)}
+                          placeholder="Add a caption..."
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none ${isMobile ? 'text-xs' : 'text-sm'}`}
+                          rows={2}
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => handleSaveEdit(photo.id)}
+                            disabled={deletingPhotoId === photo.id}
+                            className="flex items-center gap-1 px-3 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-xs disabled:opacity-50"
+                          >
+                            <Check className="w-3 h-3" />
+                            Save
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="flex items-center gap-1 px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-xs"
+                          >
+                            <X className="w-3 h-3" />
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      photo.caption && (
+                        <p className={`${isMobile ? 'p-2 text-xs' : 'p-3 text-sm'}`}>{photo.caption}</p>
+                      )
                     )}
                     <div className={`flex items-center justify-between ${isMobile ? 'px-2 pb-2' : 'px-3 pb-3'}`}>
                       <p className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>by {photo.uploaded_by}</p>
                       <div className="flex gap-2 items-center">
+                        {/* Edit/Delete buttons - only show for wall owner or photo uploader */}
+                        {canEditPhoto(photo) && editingPhotoId !== photo.id && (
+                          <>
+                            <button
+                              onClick={() => handleStartEdit(photo)}
+                              disabled={deletingPhotoId === photo.id}
+                              className="text-gray-400 hover:text-blue-600 transition-colors cursor-pointer p-1 disabled:opacity-50"
+                              title="Edit photo"
+                            >
+                              <Edit2 className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                            </button>
+                            <button
+                              onClick={() => handleDeletePhoto(photo.id)}
+                              disabled={deletingPhotoId === photo.id}
+                              className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer p-1 disabled:opacity-50"
+                              title="Delete photo"
+                            >
+                              {deletingPhotoId === photo.id ? (
+                                <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} animate-spin rounded-full border-2 border-red-600 border-t-transparent`}></div>
+                              ) : (
+                                <Trash2 className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                              )}
+                            </button>
+                          </>
+                        )}
                         <button 
                           onClick={() => handleReaction(photo.id, "❤️")}
                           disabled={reacting === photo.id || !user || wall.is_archived}
