@@ -88,6 +88,7 @@ export function WallControlPanel({
     <>
       {/* Control Panel Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed ${isMobile ? 'bottom-20 right-4' : 'top-20 right-4'} z-40 celebration-gradient text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all`}
         title="Wall Control Panel"
@@ -125,6 +126,7 @@ export function WallControlPanel({
                   Wall Control Panel
                 </h2>
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
@@ -155,6 +157,7 @@ export function WallControlPanel({
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
@@ -176,6 +179,7 @@ export function WallControlPanel({
                   <div className={isMobile ? 'space-y-1.5' : 'space-y-2'}>
                     {['none', 'birthday_mates', 'invited_guests', 'both'].map((permission) => (
                       <button
+                        type="button"
                         key={permission}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -208,6 +212,7 @@ export function WallControlPanel({
               {localUploadsEnabled && !localIsSealed && (
                 <div className={isMobile ? 'mb-4' : 'mb-6'}>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();

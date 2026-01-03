@@ -243,6 +243,7 @@ export function DraggablePhoto({
           {isWallOwner && showControls && (
             <div className="absolute -top-2 -right-2 flex gap-1 z-50">
               <button
+                type="button"
                 onClick={handleBringToFront}
                 className="p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                 title="Bring to front"
@@ -251,6 +252,7 @@ export function DraggablePhoto({
               </button>
               {onEdit && (
                 <button
+                  type="button"
                   onClick={() => onEdit(photo.id)}
                   className="p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                   title="Edit"
@@ -260,6 +262,7 @@ export function DraggablePhoto({
               )}
               {onDelete && (
                 <button
+                  type="button"
                   onClick={() => onDelete(photo.id)}
                   className="p-1 bg-white rounded-full shadow-lg hover:bg-red-100 transition-colors"
                   title="Delete"
@@ -273,6 +276,7 @@ export function DraggablePhoto({
           {/* Rotation Handle - Only for wall owner */}
           {isWallOwner && showControls && (
             <button
+              type="button"
               onMouseDown={handleRotateStart}
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-grab active:cursor-grabbing"
               title="Rotate"
@@ -284,6 +288,7 @@ export function DraggablePhoto({
           {/* Resize Handle - Only for wall owner */}
           {isWallOwner && showControls && (
             <button
+              type="button"
               onMouseDown={handleResizeStart}
               className="absolute -bottom-2 -right-2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-nwse-resize"
               title="Resize"
@@ -322,6 +327,7 @@ export function DraggablePhoto({
               {onReact && (
                 <>
                   <button
+                    type="button"
                     onClick={() => onReact(photo.id, '❤️')}
                     className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors ${photo.user_reacted?.includes('❤️') ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-red-50'}`}
                   >
@@ -329,6 +335,7 @@ export function DraggablePhoto({
                     <span className="text-xs">{photo.reactions['❤️'] || 0}</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => onReact(photo.id, '👍')}
                     className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors ${photo.user_reacted?.includes('👍') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600 hover:bg-blue-50'}`}
                   >
@@ -336,6 +343,7 @@ export function DraggablePhoto({
                     <span className="text-xs">{photo.reactions['👍'] || 0}</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => onReact(photo.id, '😊')}
                     className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors ${photo.user_reacted?.includes('😊') ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-600 hover:bg-yellow-50'}`}
                   >

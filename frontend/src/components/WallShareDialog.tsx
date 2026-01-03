@@ -101,6 +101,7 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                 Share Birthday Wall
               </h2>
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   onClose();
@@ -124,6 +125,7 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                   className={`flex-1 ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-3'} border-2 border-gray-200 ${isMobile ? 'rounded-lg' : 'rounded-xl'} bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500`}
                 />
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -160,6 +162,7 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
                 <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-700 break-words overflow-wrap-anywhere`}>{shareMessage}</p>
               </div>
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigator.clipboard.writeText(shareMessage);
@@ -174,6 +177,7 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
             {/* Share Buttons */}
             <div className="space-y-3">
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
