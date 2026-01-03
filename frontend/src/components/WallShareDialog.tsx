@@ -89,7 +89,7 @@ Sign up to upload photos, send digital gifts, and celebrate together! 🎂✨`;
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className={`fixed ${isMobile ? 'inset-0 m-auto h-fit max-h-[75vh] w-[calc(100vw-3rem)] max-w-[360px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[600px]'} z-[60] rounded-2xl ${isMobile ? 'p-4 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
+            className={`fixed ${isMobile ? 'inset-0 m-auto h-fit max-h-[65vh] w-[calc(100vw-3rem)] max-w-[320px]' : 'top-[15vh] left-1/2 -translate-x-1/2 max-h-[75vh] w-[90vw] max-w-[600px]'} z-[60] rounded-2xl ${isMobile ? 'p-3 overflow-y-auto' : 'p-8 overflow-y-auto'} shadow-2xl bg-white border-2 border-gray-200`}
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
