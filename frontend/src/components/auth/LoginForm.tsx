@@ -184,11 +184,23 @@ function LoginFormContent() {
 
       <p className="text-center text-sm text-gray-600">
         Don&apos;t have an account?{' '}
-        <a href="/signup" className="text-primary-600 font-semibold hover:underline">
+        <Link href={`/signup?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary-600 font-semibold hover:underline">
           Sign up
-        </a>
+        </Link>
       </p>
     </div>
   );
 }
 
+export function LoginForm() {
+  return (
+    <Suspense fallback={
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    }>
+      <LoginFormContent />
+    </Suspense>
+  );
+}
