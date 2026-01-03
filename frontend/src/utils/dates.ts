@@ -49,3 +49,38 @@ export function getTribeId(date: Date | string): string {
   return `${month}-${day}`;
 }
 
+/**
+ * Check if user can create a birthday wall (within 24 hours before birthday)
+ */
+export function canCreateBirthdayWall(month: number, day: number): { canCreate: boolean; hoursUntil: number | null; message: string } {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  let birthdayThisYear = new Date(currentYear, month - 1, day);
+  
+  if (birthdayThisYear < today) {
+    birthdayThisYear = new Date(currentYear + 1, month - 1, day);
+  }
+  
+  // Wall opens 24 hours before birthday (1 day before)
+  const opensAt = new Date(birthdayThisYear);
+  opensAt.setDate(opensAt.getDate() - 1);
+  opensAt.setHours(0, 0, 0, 0);
+  
+  const now = new Date();
+  const hoursUntilOpen = (opensAt.getTime() - now.getTime()) / (1000 * 60 * 60);
+  
+  if (hoursUntilOpen > 24) {
+    return {
+      canCreate: false,
+      hoursUntil: Math.ceil(hoursUntilOpen),
+      message: `Your birthday wall will open in ${Math.ceil(hoursUntilOpen)} hours (24 hours before your birthday)`
+    };
+  }
+  
+  return {
+    canCreate: true,
+    hoursUntil: null,
+    message: ''
+  };
+}
+

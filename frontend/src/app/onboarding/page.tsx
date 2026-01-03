@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { authAPI, userAPI } from '@/lib/api';
+import { authAPI, userAPI, api } from '@/lib/api';
 import { auth } from '@/lib/firebase';
 import toast from 'react-hot-toast';
 import { Upload, User, Calendar, MapPin, Check } from 'lucide-react';
@@ -121,25 +121,18 @@ export default function OnboardingPage() {
         throw new Error('Signup succeeded but user ID not returned');
       }
 
-      // Upload profile picture to backend
+      // Upload profile picture to backend using authenticated API client
       const formData = new FormData();
       formData.append('file', profilePicture);
       
-      const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/upload/profile-picture`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${await firebaseUser.getIdToken()}`,
-        },
-        body: formData,
+      // Use the api client which automatically includes Authorization header
+      const uploadResponse = await api.post('/upload/profile-picture', formData, {
+        timeout: 60000, // 60 second timeout for file uploads
       });
 
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => ({ detail: 'Upload failed' }));
-        throw new Error(errorData.detail || 'Failed to upload profile picture');
-      }
-
-      const uploadData = await uploadResponse.json();
-      const fullUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${uploadData.url}`;
+      const uploadData = uploadResponse.data;
+      // The backend returns the full URL, so use it directly
+      const fullUrl = uploadData.url;
       
       // Update user's profile picture URL
       await userAPI.updateProfilePicture(response.data.id, fullUrl);
