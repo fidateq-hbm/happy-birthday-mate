@@ -174,21 +174,14 @@ export default function BirthdayWallPage() {
     }
   };
 
-  // Refresh wall without setting loading state (for updates that shouldn't show loading spinner)
-  const refreshWall = async () => {
+  // Silent refresh without loading state (for updates that shouldn't show loading spinner)
+  const refreshWallData = async () => {
     try {
-      // Preserve dialog states before refresh
-      const preservedStates = {
-        showFramePicker,
-        showShareDialog,
-        editingPhotoId,
-        changingFramePhotoId
-      };
-
       const response = await roomAPI.getBirthdayWall(wallCode, user?.id);
       setWall(response.data);
+      console.log('Wall refreshed silently:', response.data);
       
-      // EME Phase 1: Fetch upload status
+      // Fetch upload status if needed
       if (user && response.data.wall_id) {
         try {
           const statusResponse = await roomAPI.getUploadStatus(response.data.wall_id);
@@ -197,23 +190,9 @@ export default function BirthdayWallPage() {
           console.error('Error fetching upload status:', error);
         }
       }
-
-      // Restore dialog states after refresh
-      if (preservedStates.showFramePicker) {
-        setShowFramePicker(true);
-      }
-      if (preservedStates.showShareDialog) {
-        setShowShareDialog(true);
-      }
-      if (preservedStates.editingPhotoId) {
-        setEditingPhotoId(preservedStates.editingPhotoId);
-      }
-      if (preservedStates.changingFramePhotoId) {
-        setChangingFramePhotoId(preservedStates.changingFramePhotoId);
-      }
     } catch (error) {
       console.error('Error refreshing wall:', error);
-      // Don't navigate on refresh errors, just log
+      // Don't show error toast or redirect on background refresh
     }
   };
 
@@ -232,31 +211,20 @@ export default function BirthdayWallPage() {
 
     setUploading(true);
     
-    // SAVE the frame picker state before upload
-    const wasFramePickerOpen = showFramePicker;
-    
     try {
       console.log('Starting photo upload...', { fileName: file.name, fileSize: file.size });
       
-      // Upload to backend
-      console.log('Uploading to backend...', { wallId: wall.wall_id, userId: user.id });
       const uploadResponse = await uploadAPI.uploadBirthdayWallPhoto(wall.wall_id, user.id, file);
       const photoUrl = uploadResponse.data.url;
       console.log('Backend upload complete, photo URL:', photoUrl);
 
-      // Add to wall
-      console.log('Adding photo to wall...');
       await roomAPI.uploadPhotoToWall(wall.wall_id, photoUrl, '', user.id, selectedFrame);
       
       console.log('Photo upload successful!');
       toast.success('Photo uploaded! 📸');
       
-      await refreshWall();
-      
-      // RESTORE the frame picker state after refreshWall
-      if (wasFramePickerOpen) {
-        setShowFramePicker(true);
-      }
+      // Use silent refresh instead of fetchWall
+      await refreshWallData();
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       console.error('Error details:', {
@@ -352,7 +320,6 @@ export default function BirthdayWallPage() {
   const handleReaction = async (photoId: number, emoji: string) => {
     if (!user || !wall) return;
     
-    // Don't allow reactions on archived walls
     if (wall.is_archived) {
       toast.error('This wall is archived. Reactions are disabled.');
       return;
@@ -362,40 +329,8 @@ export default function BirthdayWallPage() {
     try {
       await roomAPI.addPhotoReaction(wall.wall_id, photoId, emoji, user.id);
       
-      // Optimize: Update reactions locally instead of full refetch
-      if (wall.photos) {
-        const updatedPhotos = wall.photos.map(photo => {
-          if (photo.id === photoId) {
-            const updatedReactions = { ...photo.reactions };
-            const currentCount = updatedReactions[emoji as keyof typeof updatedReactions] || 0;
-            
-            // Toggle reaction: if user already reacted, remove it; otherwise add it
-            const userReacted = photo.user_reacted || [];
-            const hasReacted = userReacted.includes(emoji);
-            
-            if (hasReacted) {
-              // Remove reaction
-              updatedReactions[emoji as keyof typeof updatedReactions] = Math.max(0, currentCount - 1);
-              return {
-                ...photo,
-                reactions: updatedReactions,
-                user_reacted: userReacted.filter(e => e !== emoji)
-              };
-            } else {
-              // Add reaction
-              updatedReactions[emoji as keyof typeof updatedReactions] = currentCount + 1;
-              return {
-                ...photo,
-                reactions: updatedReactions,
-                user_reacted: [...userReacted, emoji]
-              };
-            }
-          }
-          return photo;
-        });
-        
-        setWall({ ...wall, photos: updatedPhotos });
-      }
+      // Use silent refresh instead of fetchWall
+      await refreshWallData();
     } catch (error: any) {
       console.error('Error adding reaction:', error);
       let errorMessage = 'Failed to add reaction';
@@ -403,9 +338,6 @@ export default function BirthdayWallPage() {
         errorMessage = error.response.data.detail;
       }
       toast.error(errorMessage);
-      
-      // On error, refresh to get accurate state
-      await refreshWall();
     } finally {
       setReacting(null);
     }
@@ -651,7 +583,7 @@ export default function BirthdayWallPage() {
                 uploadPermission={wall.upload_permission || 'none'}
                 uploadPaused={wall.upload_paused || false}
                 isSealed={wall.is_sealed || false}
-                onUpdate={refreshWall}
+                onUpdate={refreshWallData}
                 isMobile={isMobile}
               />
               {/* Share Button */}
