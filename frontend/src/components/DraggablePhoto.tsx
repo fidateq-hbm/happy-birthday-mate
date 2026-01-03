@@ -130,19 +130,19 @@ export function DraggablePhoto({
     }
   };
 
-  const handleRotateStop = async () => {
+  const handleRotateStop = () => {
     if (!isRotating || !isWallOwner) return;
     setIsRotating(false);
     
-    try {
-      await roomAPI.updatePhotoPosition(wallId, photo.id, {
-        rotation: rotation
-      });
+    // Call async operation without making this function async
+    roomAPI.updatePhotoPosition(wallId, photo.id, {
+      rotation: rotation
+    }).then(() => {
       onUpdate();
-    } catch (error: any) {
+    }).catch((error: any) => {
       console.error('Error updating photo rotation:', error);
       toast.error('Failed to update photo rotation');
-    }
+    });
   };
 
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -162,20 +162,20 @@ export function DraggablePhoto({
     setSize({ width: newWidth, height: newHeight });
   };
 
-  const handleResizeStop = async () => {
+  const handleResizeStop = () => {
     if (!isResizing || !isWallOwner) return;
     setIsResizing(false);
     
-    try {
-      await roomAPI.updatePhotoPosition(wallId, photo.id, {
-        width: size.width,
-        height: size.height
-      });
+    // Call async operation without making this function async
+    roomAPI.updatePhotoPosition(wallId, photo.id, {
+      width: size.width,
+      height: size.height
+    }).then(() => {
       onUpdate();
-    } catch (error: any) {
+    }).catch((error: any) => {
       console.error('Error updating photo size:', error);
       toast.error('Failed to update photo size');
-    }
+    });
   };
 
   useEffect(() => {
@@ -200,20 +200,20 @@ export function DraggablePhoto({
     }
   }, [isResizing, size]);
 
-  const handleBringToFront = async () => {
+  const handleBringToFront = () => {
     if (!isWallOwner) return;
-    try {
-      // Get max z_index and add 1
-      const maxZ = Math.max(...(document.querySelectorAll('.draggable-photo') as any).map((el: HTMLElement) => 
-        parseInt(el.style.zIndex) || 0
-      ), photo.z_index || 0);
-      
-      await roomAPI.updatePhotoLayer(wallId, photo.id, maxZ + 1);
+    // Get max z_index and add 1
+    const maxZ = Math.max(...(document.querySelectorAll('.draggable-photo') as any).map((el: HTMLElement) => 
+      parseInt(el.style.zIndex) || 0
+    ), photo.z_index || 0);
+    
+    // Call async operation without making this function async
+    roomAPI.updatePhotoLayer(wallId, photo.id, maxZ + 1).then(() => {
       onUpdate();
-    } catch (error: any) {
+    }).catch((error: any) => {
       console.error('Error updating photo layer:', error);
       toast.error('Failed to update photo layer');
-    }
+    });
   };
 
   return (
