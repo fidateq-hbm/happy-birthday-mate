@@ -149,21 +149,51 @@ async def upload_birthday_wall_photo(
         image_bytes = io.BytesIO(contents)
         image_bytes.seek(0)  # Ensure we're at the start
         
-        # Open image from bytes
+        # Open and verify image from bytes
         image = Image.open(image_bytes)
+        
+        # Verify the image is valid (this will raise an exception if corrupted)
+        try:
+            image.verify()
+        except Exception as verify_error:
+            raise ValueError(f"Invalid or corrupted image file: {str(verify_error)}")
+        
+        # Reopen the image after verification (verify() makes the image unusable)
+        image_bytes.seek(0)
+        image = Image.open(image_bytes)
+        
         original_size = image.size
         print(f"Original image size: {original_size}, mode: {image.mode}")
         
-        # Convert RGBA to RGB if necessary (for PNG with transparency)
-        if image.mode in ('RGBA', 'LA', 'P'):
-            # Create white background
+        # Convert to RGB mode (required for JPEG saving)
+        # Handle different image modes properly
+        if image.mode in ('RGBA', 'LA'):
+            # Create white background for transparent images
             rgb_image = Image.new('RGB', image.size, (255, 255, 255))
-            if image.mode == 'P':
-                image = image.convert('RGBA')
-            rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+            if image.mode == 'RGBA':
+                rgb_image.paste(image, mask=image.split()[3])  # Use alpha channel as mask
+            else:
+                rgb_image.paste(image)
             image = rgb_image
-        elif image.mode != 'RGB':
+        elif image.mode == 'P':
+            # Palette mode - convert to RGBA first, then RGB
+            if 'transparency' in image.info:
+                image = image.convert('RGBA')
+                rgb_image = Image.new('RGB', image.size, (255, 255, 255))
+                rgb_image.paste(image, mask=image.split()[3])
+                image = rgb_image
+            else:
+                image = image.convert('RGB')
+        elif image.mode not in ('RGB', 'L'):
+            # Convert other modes to RGB
             image = image.convert('RGB')
+        
+        # Ensure we have RGB mode
+        if image.mode == 'L':
+            # Grayscale - convert to RGB
+            image = image.convert('RGB')
+        
+        print(f"Image mode after conversion: {image.mode}, size: {image.size}")
         
         # Calculate resize dimensions maintaining aspect ratio
         # Crop to center and resize to target dimensions
@@ -186,13 +216,17 @@ async def upload_birthday_wall_photo(
             image = image.crop((0, top, original_width, top + new_height))
             print(f"Cropped height: {image.size}")
         
-        # Resize to target dimensions
-        image = image.resize((TARGET_WIDTH, TARGET_HEIGHT), Image.Resampling.LANCZOS)
-        print(f"Resized to: {image.size}")
+        # Resize to target dimensions (must assign to variable - resize() returns new image)
+        resized_image = image.resize((TARGET_WIDTH, TARGET_HEIGHT), Image.Resampling.LANCZOS)
+        print(f"Resized to: {resized_image.size}")
+        
+        # Verify resize worked
+        if resized_image.size != (TARGET_WIDTH, TARGET_HEIGHT):
+            raise ValueError(f"Resize failed: expected {TARGET_WIDTH}x{TARGET_HEIGHT}, got {resized_image.size}")
         
         # Save resized image to bytes
         output = io.BytesIO()
-        image.save(output, format='JPEG', quality=85, optimize=True)
+        resized_image.save(output, format='JPEG', quality=85, optimize=True)
         output.seek(0)  # Reset position before reading
         resized_contents = output.getvalue()
         original_size_bytes = len(contents)
@@ -207,7 +241,11 @@ async def upload_birthday_wall_photo(
         file_extension = '.jpg'  # Always save as JPEG after processing
         
         print(f"Image resize successful: {original_size_bytes} bytes -> {resized_size_bytes} bytes")
-        print(f"Final image dimensions: {image.size}")
+        print(f"Final image dimensions: {resized_image.size}")
+        
+        # Clean up image objects
+        image.close()
+        resized_image.close()
         
     except Exception as e:
         # Image resize is required - fail if it doesn't work
