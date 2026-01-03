@@ -63,7 +63,7 @@ export function DraggablePhoto({
   const [position, setPosition] = useState({ x: photo.position_x || 0, y: photo.position_y || 0 });
   const [size, setSize] = useState({ width: photo.width || 200, height: photo.height || 200 });
   const [showControls, setShowControls] = useState(false);
-  const nodeRef = useRef(null);
+  const nodeRef = useRef<HTMLDivElement>(null);
   const rotationStartRef = useRef(0);
   const resizeStartRef = useRef({ width: 0, height: 0, x: 0, y: 0 });
 
