@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { userAPI } from '@/lib/api';
 import { DigitalCardView } from '@/components/DigitalGiftEffects';
+import { formatCurrency } from '@/utils/currency';
 
 interface GiftItem {
   id: number;
@@ -453,7 +454,7 @@ export default function GiftsPage() {
                       <p className="text-sm text-gray-600 mb-4">{gift.description}</p>
                       <div className="flex items-center justify-between">
                         <span className="text-2xl font-bold gradient-text">
-                          {gift.currency === 'USD' ? '$' : gift.currency}{gift.price}
+                          {formatCurrency(gift.price, gift.currency)}
                         </span>
                         <div className="flex gap-2">
                           <button
@@ -689,7 +690,7 @@ export default function GiftsPage() {
                     <div>
                       <p className="text-sm text-gray-600">Price</p>
                       <p className="text-3xl font-bold gradient-text">
-                        {previewGift.currency === 'USD' ? '$' : previewGift.currency}{previewGift.price}
+                        {formatCurrency(previewGift.price, previewGift.currency)}
                       </p>
                     </div>
                     <button
@@ -751,7 +752,7 @@ export default function GiftsPage() {
                   <h2 className="text-2xl font-bold gradient-text mb-2">{sendGiftModal.name}</h2>
                   <p className="text-gray-600">{sendGiftModal.description}</p>
                   <p className="text-xl font-bold gradient-text mt-2">
-                    {sendGiftModal.currency === 'USD' ? '$' : sendGiftModal.currency}{sendGiftModal.price}
+                    {formatCurrency(sendGiftModal.price, sendGiftModal.currency)}
                   </p>
                 </div>
 
@@ -919,7 +920,7 @@ export default function GiftsPage() {
                   ) : (
                     <>
                       <Send className="w-5 h-5" />
-                      Send Gift ({sendGiftModal.currency === 'USD' ? '$' : sendGiftModal.currency}{sendGiftModal.price})
+                      Send Gift ({formatCurrency(sendGiftModal.price, sendGiftModal.currency)})
                     </>
                   )}
                 </button>

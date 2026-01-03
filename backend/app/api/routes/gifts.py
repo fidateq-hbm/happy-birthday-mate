@@ -1,14 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from decimal import Decimal
+import os
 
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, get_optional_user
 from app.core.config import settings
 from app.models import Gift, GiftCatalog, GiftTypeEnum, PaymentProviderEnum, User
 from app.services.flutterwave_service import FlutterwaveService
+from app.services.currency_service import CurrencyService
 
 router = APIRouter()
 
@@ -21,27 +23,64 @@ class SendGiftRequest(BaseModel):
 
 
 @router.get("/catalog")
-async def get_gift_catalog(db: Session = Depends(get_db)):
-    """Get all available gifts in catalog"""
+async def get_gift_catalog(
+    current_user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all available gifts in catalog with prices converted to user's currency
+    
+    If user is authenticated, prices are converted to their country's currency.
+    Otherwise, prices are returned in USD (base currency).
+    """
     
     gifts = db.query(GiftCatalog).filter(
         GiftCatalog.is_active == True
     ).order_by(GiftCatalog.display_order).all()
     
+    # Get user's currency if authenticated
+    user_currency = CurrencyService.BASE_CURRENCY
+    if current_user:
+        user_currency = await CurrencyService.get_user_currency(current_user.country)
+    
+    # Convert prices if user currency is different from base
+    converted_gifts = []
+    for gift in gifts:
+        base_price = Decimal(str(gift.price))
+        display_price = base_price
+        display_currency = gift.currency
+        
+        # Convert if user currency is different
+        if user_currency != CurrencyService.BASE_CURRENCY:
+            try:
+                display_price = await CurrencyService.convert_currency(
+                    base_price,
+                    CurrencyService.BASE_CURRENCY,
+                    user_currency
+                )
+                display_currency = user_currency
+            except Exception as e:
+                print(f"Error converting currency for gift {gift.id}: {str(e)}")
+                # Fallback to base currency
+                display_price = base_price
+                display_currency = CurrencyService.BASE_CURRENCY
+        
+        converted_gifts.append({
+            "id": gift.id,
+            "name": gift.name,
+            "description": gift.description,
+            "gift_type": gift.gift_type,
+            "price": float(display_price),
+            "currency": display_currency,
+            "base_price": float(base_price),  # Include base price for reference
+            "base_currency": CurrencyService.BASE_CURRENCY,
+            "image_url": gift.image_url,
+            "is_featured": gift.is_featured
+        })
+    
     return {
-        "gifts": [
-            {
-                "id": gift.id,
-                "name": gift.name,
-                "description": gift.description,
-                "gift_type": gift.gift_type,
-                "price": float(gift.price),
-                "currency": gift.currency,
-                "image_url": gift.image_url,
-                "is_featured": gift.is_featured
-            }
-            for gift in gifts
-        ]
+        "gifts": converted_gifts,
+        "user_currency": user_currency
     }
 
 
@@ -75,18 +114,37 @@ async def send_gift(
             detail="Gift not found in catalog"
         )
     
+    # Get user's currency and convert price
+    base_price = Decimal(str(catalog_item.price))
+    user_currency = await CurrencyService.get_user_currency(sender.country)
+    
+    # Convert price to user's currency
+    converted_price = base_price
+    if user_currency != CurrencyService.BASE_CURRENCY:
+        try:
+            converted_price = await CurrencyService.convert_currency(
+                base_price,
+                CurrencyService.BASE_CURRENCY,
+                user_currency
+            )
+        except Exception as e:
+            print(f"Error converting currency: {str(e)}")
+            # Fallback to base currency
+            converted_price = base_price
+            user_currency = CurrencyService.BASE_CURRENCY
+    
     # Generate transaction reference
     tx_ref = FlutterwaveService.generate_tx_ref(0)  # Will update after gift creation
     
-    # Create gift transaction
+    # Create gift transaction (store converted amount and currency)
     gift = Gift(
         sender_id=sender_id,
         recipient_id=gift_request.recipient_id,
         gift_type=catalog_item.gift_type,
         gift_name=catalog_item.name,
         gift_description=catalog_item.description,
-        amount=catalog_item.price,
-        currency=catalog_item.currency,
+        amount=converted_price,  # Store converted amount
+        currency=user_currency,  # Store user's currency
         payment_provider=gift_request.payment_provider,
         message=gift_request.message,
         payment_status="pending",
@@ -153,8 +211,8 @@ async def send_gift(
         
         try:
             payment_response = await FlutterwaveService.initialize_payment(
-                amount=catalog_item.price,
-                currency=catalog_item.currency or "USD",
+                amount=converted_price,  # Use converted price
+                currency=user_currency,  # Use user's currency
                 email=sender.email,
                 tx_ref=tx_ref,
                 customer_name=sender.first_name,
@@ -162,7 +220,9 @@ async def send_gift(
                 meta_data={
                     "gift_id": gift.id,
                     "sender_id": sender_id,
-                    "recipient_id": gift_request.recipient_id
+                    "recipient_id": gift_request.recipient_id,
+                    "base_price": str(base_price),  # Store base price for reference
+                    "base_currency": CurrencyService.BASE_CURRENCY
                 }
             )
             
