@@ -41,6 +41,20 @@ class UpdatePhotoRequest(BaseModel):
     frame_style: Optional[str] = None
 
 
+# EME Phase 2: Canvas positioning models
+class UpdatePhotoPositionRequest(BaseModel):
+    position_x: Optional[float] = None
+    position_y: Optional[float] = None
+    rotation: Optional[float] = None
+    scale: Optional[float] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+
+
+class UpdatePhotoLayerRequest(BaseModel):
+    z_index: int
+
+
 # EME Phase 1: Invitation and Upload Control Models
 class InviteToWallRequest(BaseModel):
     invited_user_id: Optional[int] = None  # For birthday mates
@@ -355,7 +369,15 @@ async def get_user_birthday_wall(
             "created_at": photo.created_at,
             "frame_style": photo.frame_style or "none",
             "reactions": reaction_counts,
-            "user_reacted": list(user_reactions)
+            "user_reacted": list(user_reactions),
+            # EME Phase 2: Canvas positioning
+            "position_x": photo.position_x or 0.0,
+            "position_y": photo.position_y or 0.0,
+            "rotation": photo.rotation or 0.0,
+            "scale": photo.scale or 1.0,
+            "z_index": photo.z_index or 0,
+            "width": photo.width,
+            "height": photo.height
         })
     
     # Check if wall is open
@@ -479,7 +501,15 @@ async def get_birthday_wall(
             "created_at": photo.created_at,
             "frame_style": photo.frame_style or "none",
             "reactions": reaction_counts,
-            "user_reacted": list(user_reactions)
+            "user_reacted": list(user_reactions),
+            # EME Phase 2: Canvas positioning
+            "position_x": photo.position_x or 0.0,
+            "position_y": photo.position_y or 0.0,
+            "rotation": photo.rotation or 0.0,
+            "scale": photo.scale or 1.0,
+            "z_index": photo.z_index or 0,
+            "width": photo.width,
+            "height": photo.height
         })
     
     return {
@@ -856,6 +886,158 @@ async def update_photo(
         "photo_id": photo.id,
         "caption": photo.caption,
         "frame_style": photo.frame_style
+    }
+
+
+# ========== EME Phase 2: Canvas Positioning Endpoints ==========
+
+@router.patch("/birthday-wall/{wall_id}/photos/{photo_id}/position")
+async def update_photo_position(
+    wall_id: int,
+    photo_id: int,
+    request: UpdatePhotoPositionRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update photo position, rotation, scale, and size on canvas (EME Phase 2) - Only wall owner can update"""
+    
+    # Verify photo exists and belongs to wall
+    photo = db.query(WallPhoto).filter(
+        WallPhoto.id == photo_id,
+        WallPhoto.wall_id == wall_id
+    ).first()
+    
+    if not photo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Photo not found"
+        )
+    
+    # Verify wall exists
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # EME Phase 2: Only the wall owner (celebrant) can move items
+    if wall.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the wall owner can position items on the wall"
+        )
+    
+    # Check if wall is sealed (immutable)
+    if wall.is_sealed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This wall is sealed and cannot be modified"
+        )
+    
+    # Update position if provided
+    if request.position_x is not None:
+        photo.position_x = request.position_x
+    if request.position_y is not None:
+        photo.position_y = request.position_y
+    if request.rotation is not None:
+        # Normalize rotation to 0-360 range
+        photo.rotation = request.rotation % 360
+    if request.scale is not None:
+        # Validate scale (between 0.1 and 5.0)
+        if 0.1 <= request.scale <= 5.0:
+            photo.scale = request.scale
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Scale must be between 0.1 and 5.0"
+            )
+    if request.width is not None:
+        if request.width > 0:
+            photo.width = request.width
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Width must be greater than 0"
+            )
+    if request.height is not None:
+        if request.height > 0:
+            photo.height = request.height
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Height must be greater than 0"
+            )
+    
+    db.commit()
+    db.refresh(photo)
+    
+    return {
+        "message": "Photo position updated successfully",
+        "photo_id": photo.id,
+        "position_x": photo.position_x,
+        "position_y": photo.position_y,
+        "rotation": photo.rotation,
+        "scale": photo.scale,
+        "width": photo.width,
+        "height": photo.height
+    }
+
+
+@router.patch("/birthday-wall/{wall_id}/photos/{photo_id}/layer")
+async def update_photo_layer(
+    wall_id: int,
+    photo_id: int,
+    request: UpdatePhotoLayerRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update photo z-index/layer order (EME Phase 2) - Only wall owner can update"""
+    
+    # Verify photo exists and belongs to wall
+    photo = db.query(WallPhoto).filter(
+        WallPhoto.id == photo_id,
+        WallPhoto.wall_id == wall_id
+    ).first()
+    
+    if not photo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Photo not found"
+        )
+    
+    # Verify wall exists
+    wall = db.query(BirthdayWall).filter(BirthdayWall.id == wall_id).first()
+    if not wall:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birthday wall not found"
+        )
+    
+    # EME Phase 2: Only the wall owner (celebrant) can change layer order
+    if wall.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the wall owner can change layer order"
+        )
+    
+    # Check if wall is sealed (immutable)
+    if wall.is_sealed:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This wall is sealed and cannot be modified"
+        )
+    
+    # Update z-index
+    photo.z_index = request.z_index
+    
+    db.commit()
+    db.refresh(photo)
+    
+    return {
+        "message": "Photo layer updated successfully",
+        "photo_id": photo.id,
+        "z_index": photo.z_index
     }
 
 

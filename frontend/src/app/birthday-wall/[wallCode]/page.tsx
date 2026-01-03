@@ -15,6 +15,7 @@ import { ReportContentModal } from '@/components/ReportContentModal';
 import { normalizeImageUrl } from '@/utils/images';
 import { WallControlPanel } from '@/components/WallControlPanel';
 import { WallShareDialog } from '@/components/WallShareDialog';
+import { DraggablePhoto } from '@/components/DraggablePhoto';
 
 interface Photo {
   id: number;
@@ -30,6 +31,14 @@ interface Photo {
     "😊": number;
   };
   user_reacted?: string[];
+  // EME Phase 2: Canvas positioning
+  position_x?: number;
+  position_y?: number;
+  rotation?: number;
+  scale?: number;
+  z_index?: number;
+  width?: number;
+  height?: number;
 }
 
 interface Wall {
@@ -679,212 +688,36 @@ export default function BirthdayWallPage() {
             </div>
           )}
 
-          {/* Photos Grid */}
+          {/* Canvas Container for Draggable Photos */}
           {wall.photos.length === 0 ? (
             <div className={`text-center relative z-20 ${isMobile ? 'py-12' : 'py-16'}`}>
               <p className={`text-gray-500 mb-2 ${isMobile ? 'text-base' : 'text-lg'}`}>No photos yet</p>
               <p className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Be the first to add a memory!</p>
             </div>
           ) : (
-            <div className={`relative z-20 ${isMobile ? 'space-y-4' : 'columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4'}`}>
-              {wall.photos.map((photo, index) => (
-                <motion.div
-                  key={photo.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className={isMobile ? '' : 'break-inside-avoid'}
-                >
-                  <div className={`glass-effect rounded-2xl hover:shadow-xl transition-all ${isMobile ? 'p-2 mb-4' : 'p-2'} ${getFrameClass(photo.frame_style || 'none')}`}>
-                    <div className={`${getFrameWrapperClass(photo.frame_style || 'none')}`}>
-                      <img
-                        src={normalizeImageUrl(photo.photo_url)}
-                        alt={photo.caption || 'Birthday memory'}
-                        className={`w-full h-auto object-cover ${getFrameImageClass(photo.frame_style || 'none')} ${isMobile ? 'max-h-64' : ''}`}
-                        loading="lazy"
-                        onError={(e) => {
-                          // Fallback to data URI placeholder if image fails to load
-                          const target = e.target as HTMLImageElement;
-                          // Use a data URI to prevent network requests and infinite loops
-                          if (!target.src.startsWith('data:')) {
-                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzljYTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBhdmFpbGFibGU8L3RleHQ+PC9zdmc+';
-                            target.onerror = null; // Prevent infinite loop
-                          }
-                        }}
-                      />
-                    </div>
-                    {editingPhotoId === photo.id ? (
-                      <div className={`${isMobile ? 'p-2' : 'p-3'}`}>
-                        <textarea
-                          value={editingCaption}
-                          onChange={(e) => setEditingCaption(e.target.value)}
-                          placeholder="Add a caption..."
-                          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none ${isMobile ? 'text-xs' : 'text-sm'}`}
-                          rows={2}
-                        />
-                        <div className="flex gap-2 mt-2">
-                          <button
-                            onClick={() => handleSaveEdit(photo.id)}
-                            disabled={deletingPhotoId === photo.id}
-                            className="flex items-center gap-1 px-3 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-xs disabled:opacity-50"
-                          >
-                            <Check className="w-3 h-3" />
-                            Save
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="flex items-center gap-1 px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-xs"
-                          >
-                            <X className="w-3 h-3" />
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      photo.caption && (
-                        <p className={`${isMobile ? 'p-2 text-xs' : 'p-3 text-sm'}`}>{photo.caption}</p>
-                      )
-                    )}
-                    <div className={`flex items-center justify-between ${isMobile ? 'px-2 pb-2' : 'px-3 pb-3'}`}>
-                      <p className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>by {photo.uploaded_by}</p>
-                      <div className="flex gap-2 items-center">
-                        {/* Frame change button - show for all users on non-archived walls */}
-                        {!wall.is_archived && (
-                          <div className="relative">
-                            <button
-                              onClick={() => setChangingFramePhotoId(changingFramePhotoId === photo.id ? null : photo.id)}
-                              disabled={changingFramePhotoId === photo.id && deletingPhotoId === photo.id}
-                              className="text-gray-400 hover:text-purple-600 transition-colors cursor-pointer p-1 disabled:opacity-50 relative"
-                              title="Change frame"
-                            >
-                              {changingFramePhotoId === photo.id ? (
-                                <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} animate-spin rounded-full border-2 border-purple-600 border-t-transparent`}></div>
-                              ) : (
-                                <Palette className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
-                              )}
-                            </button>
-                            {/* Frame picker dropdown */}
-                            {changingFramePhotoId === photo.id && (
-                              <div 
-                                className="absolute bottom-full right-0 mb-2 glass-effect rounded-lg p-2 border-2 border-primary-200 z-50 min-w-[200px]"
-                                onClick={(e) => e.stopPropagation()} // Prevent clicks from closing the dropdown
-                              >
-                                <p className={`font-semibold mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Choose Frame</p>
-                                <div className="grid grid-cols-4 gap-1">
-                                  {['none', 'classic', 'elegant', 'vintage', 'modern', 'gold', 'rainbow', 'polaroid'].map((frame) => (
-                                    <button
-                                      key={frame}
-                                      onClick={(e) => {
-                                        e.stopPropagation(); // Prevent event bubbling
-                                        handleChangeFrame(photo.id, frame);
-                                      }}
-                                      className={`p-1.5 rounded border-2 transition-all capitalize text-[10px] cursor-pointer ${
-                                        photo.frame_style === frame
-                                          ? 'border-primary-500 bg-primary-100'
-                                          : 'border-gray-200 hover:border-gray-300'
-                                      }`}
-                                    >
-                                      {frame === 'none' ? 'None' : frame}
-                                    </button>
-                                  ))}
-                                </div>
-                                <button
-                                  onClick={() => setChangingFramePhotoId(null)}
-                                  className="mt-2 w-full px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {/* Edit/Delete buttons - only show for wall owner or photo uploader */}
-                        {canEditPhoto(photo) && editingPhotoId !== photo.id && (
-                          <>
-                            <button
-                              onClick={() => handleStartEdit(photo)}
-                              disabled={deletingPhotoId === photo.id || changingFramePhotoId === photo.id}
-                              className="text-gray-400 hover:text-blue-600 transition-colors cursor-pointer p-1 disabled:opacity-50"
-                              title="Edit photo"
-                            >
-                              <Edit2 className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
-                            </button>
-                            <button
-                              onClick={() => handleDeletePhoto(photo.id)}
-                              disabled={deletingPhotoId === photo.id || changingFramePhotoId === photo.id}
-                              className="text-gray-400 hover:text-red-600 transition-colors cursor-pointer p-1 disabled:opacity-50"
-                              title="Delete photo"
-                            >
-                              {deletingPhotoId === photo.id ? (
-                                <div className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} animate-spin rounded-full border-2 border-red-600 border-t-transparent`}></div>
-                              ) : (
-                                <Trash2 className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
-                              )}
-                            </button>
-                          </>
-                        )}
-                        <button 
-                          onClick={() => handleReaction(photo.id, "❤️")}
-                          disabled={reacting === photo.id || !user || wall.is_archived}
-                          className={`flex items-center gap-1 transition-colors ${
-                            photo.user_reacted?.includes("❤️")
-                              ? 'text-red-500' 
-                              : (photo.reactions?.["❤️"] ?? 0) > 0
-                              ? 'text-red-400'
-                              : 'text-gray-400 hover:text-red-500'
-                          } ${reacting === photo.id || wall.is_archived ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                          <Heart className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("❤️") ? 'currentColor' : 'none'} />
-                          {(photo.reactions?.["❤️"] ?? 0) > 0 && (
-                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions?.["❤️"] ?? 0}</span>
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => handleReaction(photo.id, "👍")}
-                          disabled={reacting === photo.id || !user || wall.is_archived}
-                          className={`flex items-center gap-1 transition-colors ${
-                            photo.user_reacted?.includes("👍")
-                              ? 'text-blue-500' 
-                              : (photo.reactions?.["👍"] ?? 0) > 0
-                              ? 'text-blue-400'
-                              : 'text-gray-400 hover:text-blue-500'
-                          } ${reacting === photo.id || wall.is_archived ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                          <ThumbsUp className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("👍") ? 'currentColor' : 'none'} />
-                          {(photo.reactions?.["👍"] ?? 0) > 0 && (
-                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions?.["👍"] ?? 0}</span>
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => handleReaction(photo.id, "😊")}
-                          disabled={reacting === photo.id || !user || wall.is_archived}
-                          className={`flex items-center gap-1 transition-colors ${
-                            photo.user_reacted?.includes("😊")
-                              ? 'text-yellow-500' 
-                              : (photo.reactions?.["😊"] ?? 0) > 0
-                              ? 'text-yellow-400'
-                              : 'text-gray-400 hover:text-yellow-500'
-                          } ${reacting === photo.id || wall.is_archived ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                          <Smile className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill={photo.user_reacted?.includes("😊") ? 'currentColor' : 'none'} />
-                          {(photo.reactions?.["😊"] ?? 0) > 0 && (
-                            <span className={`${isMobile ? 'text-[10px]' : 'text-xs'}`}>{photo.reactions?.["😊"] ?? 0}</span>
-                          )}
-                        </button>
-                        {user && (
-                          <button
-                            onClick={() => setReportingPhotoId(photo.id)}
-                            className="text-gray-400 hover:text-orange-600 transition-colors cursor-pointer p-1"
-                            title="Report photo"
-                          >
-                            <Flag className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+            <div 
+              className={`relative z-20 ${isMobile ? 'min-h-[400px]' : 'min-h-[600px]'} w-full overflow-hidden`}
+              style={{ position: 'relative' }}
+            >
+              {wall.photos.map((photo, index) => {
+                const isWallOwner = user && wall.owner_name === user.first_name;
+                return (
+                  <DraggablePhoto
+                    key={photo.id}
+                    photo={photo}
+                    wallId={wall.wall_id}
+                    isWallOwner={isWallOwner || false}
+                    isMobile={isMobile}
+                    onUpdate={fetchWall}
+                    onEdit={handleStartEdit}
+                    onDelete={handleDeletePhoto}
+                    onReact={handleReaction}
+                    getFrameClass={getFrameClass}
+                    getFrameWrapperClass={getFrameWrapperClass}
+                    getFrameImageClass={getFrameImageClass}
+                  />
+                );
+              })}
             </div>
           )}
         </main>

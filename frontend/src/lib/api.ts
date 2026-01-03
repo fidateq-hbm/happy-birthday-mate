@@ -126,6 +126,11 @@ export const roomAPI = {
     api.patch(`/rooms/birthday-wall/${wallId}/upload-control`, data),
   getUploadStatus: (wallId: number) =>
     api.get(`/rooms/birthday-wall/${wallId}/upload-status`),
+  // EME Phase 2: Canvas positioning
+  updatePhotoPosition: (wallId: number, photoId: number, data: { position_x?: number; position_y?: number; rotation?: number; scale?: number; width?: number; height?: number }) =>
+    api.patch(`/rooms/birthday-wall/${wallId}/photos/${photoId}/position`, data),
+  updatePhotoLayer: (wallId: number, photoId: number, zIndex: number) =>
+    api.patch(`/rooms/birthday-wall/${wallId}/photos/${photoId}/layer`, { z_index: zIndex }),
 };
 
 // Gift endpoints

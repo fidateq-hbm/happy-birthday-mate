@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Text, Enum
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Text, Enum, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -108,6 +108,15 @@ class WallPhoto(Base):
     
     # Beautification
     frame_style = Column(String, default="none")  # Frame style for photo
+    
+    # EME Phase 2: Canvas positioning and transformation
+    position_x = Column(Float, default=0.0)  # X coordinate on canvas
+    position_y = Column(Float, default=0.0)  # Y coordinate on canvas
+    rotation = Column(Float, default=0.0)  # Rotation angle in degrees
+    scale = Column(Float, default=1.0)  # Scale factor
+    z_index = Column(Integer, default=0)  # Layer order
+    width = Column(Integer, nullable=True)  # Display width in pixels
+    height = Column(Integer, nullable=True)  # Display height in pixels
     
     # Moderation
     is_approved = Column(Boolean, default=True)
