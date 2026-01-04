@@ -74,6 +74,7 @@ export function DraggablePhoto({
   const [position, setPosition] = useState({ x: photo.position_x || 0, y: photo.position_y || 0 });
   const [size, setSize] = useState({ width: photo.width || 200, height: photo.height || 200 });
   const [showControls, setShowControls] = useState(false);
+  const [localZIndex, setLocalZIndex] = useState(photo.z_index || 0);
   const nodeRef = useRef<HTMLDivElement>(null);
   const rotationStartRef = useRef(0);
   const resizeStartRef = useRef({ width: 0, height: 0, x: 0, y: 0 });
@@ -87,7 +88,8 @@ export function DraggablePhoto({
     setRotation(photo.rotation || 0);
     setScale(photo.scale || 1.0);
     setSize({ width: photo.width || 200, height: photo.height || 200 });
-  }, [photo.position_x, photo.position_y, photo.rotation, photo.scale, photo.width, photo.height, isDragging, isRotating, isResizing]);
+    setLocalZIndex(photo.z_index || 0);
+  }, [photo.position_x, photo.position_y, photo.rotation, photo.scale, photo.width, photo.height, photo.z_index, isDragging, isRotating, isResizing]);
 
   const handleDragStart = () => {
     if (!isWallOwner) return false;
@@ -116,7 +118,7 @@ export function DraggablePhoto({
     });
   };
 
-  const handleRotateStart = (e: React.MouseEvent) => {
+  const handleRotateStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isWallOwner) return;
     e.stopPropagation();
     e.preventDefault();
@@ -126,19 +128,23 @@ export function DraggablePhoto({
       const rect = container.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const startAngle = Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
       rotationStartRef.current = rotation - startAngle;
     }
   };
 
-  const handleRotate = (e: MouseEvent) => {
+  const handleRotate = (e: MouseEvent | TouchEvent) => {
     if (!isRotating || !isWallOwner) return;
     const container = nodeRef.current;
     if (container) {
       const rect = container.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const angle = Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
       const newRotation = (rotationStartRef.current + angle + 360) % 360;
       setRotation(newRotation);
     }
@@ -159,18 +165,22 @@ export function DraggablePhoto({
     });
   };
 
-  const handleResizeStart = (e: React.MouseEvent) => {
+  const handleResizeStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isWallOwner) return;
     e.stopPropagation();
     e.preventDefault();
     setIsResizing(true);
-    resizeStartRef.current = { width: size.width, height: size.height, x: e.clientX, y: e.clientY };
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    resizeStartRef.current = { width: size.width, height: size.height, x: clientX, y: clientY };
   };
 
-  const handleResize = (e: MouseEvent) => {
+  const handleResize = (e: MouseEvent | TouchEvent) => {
     if (!isResizing || !isWallOwner) return;
-    const deltaX = e.clientX - resizeStartRef.current.x;
-    const deltaY = e.clientY - resizeStartRef.current.y;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const deltaX = clientX - resizeStartRef.current.x;
+    const deltaY = clientY - resizeStartRef.current.y;
     const newWidth = Math.max(100, Math.min(800, resizeStartRef.current.width + deltaX));
     const newHeight = Math.max(100, Math.min(800, resizeStartRef.current.height + deltaY));
     setSize({ width: newWidth, height: newHeight });
@@ -194,42 +204,55 @@ export function DraggablePhoto({
 
   useEffect(() => {
     if (isRotating) {
-      document.addEventListener('mousemove', handleRotate);
+      document.addEventListener('mousemove', handleRotate as EventListener);
       document.addEventListener('mouseup', handleRotateStop);
+      document.addEventListener('touchmove', handleRotate as EventListener, { passive: false });
+      document.addEventListener('touchend', handleRotateStop);
       return () => {
-        document.removeEventListener('mousemove', handleRotate);
+        document.removeEventListener('mousemove', handleRotate as EventListener);
         document.removeEventListener('mouseup', handleRotateStop);
+        document.removeEventListener('touchmove', handleRotate as EventListener);
+        document.removeEventListener('touchend', handleRotateStop);
       };
     }
   }, [isRotating, rotation]);
 
   useEffect(() => {
     if (isResizing) {
-      document.addEventListener('mousemove', handleResize);
+      document.addEventListener('mousemove', handleResize as EventListener);
       document.addEventListener('mouseup', handleResizeStop);
+      document.addEventListener('touchmove', handleResize as EventListener, { passive: false });
+      document.addEventListener('touchend', handleResizeStop);
       return () => {
-        document.removeEventListener('mousemove', handleResize);
+        document.removeEventListener('mousemove', handleResize as EventListener);
         document.removeEventListener('mouseup', handleResizeStop);
+        document.removeEventListener('touchmove', handleResize as EventListener);
+        document.removeEventListener('touchend', handleResizeStop);
       };
     }
   }, [isResizing, size]);
 
-  const handleBringToFront = (e: React.MouseEvent) => {
+  const handleBringToFront = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
     if (!isWallOwner) return;
     
-    // Get max z_index and add 1
-    const maxZ = Math.max(...(document.querySelectorAll('.draggable-photo') as any).map((el: HTMLElement) => 
-      parseInt(el.style.zIndex) || 0
-    ), photo.z_index || 0);
+    // Get max z_index from all draggable photos by checking computed styles
+    const allPhotos = document.querySelectorAll('.draggable-photo');
+    let maxZ = photo.z_index || 0;
+    
+    allPhotos.forEach((el) => {
+      const computedZ = window.getComputedStyle(el as HTMLElement).zIndex;
+      const zValue = parseInt(computedZ) || 0;
+      if (zValue > maxZ) {
+        maxZ = zValue;
+      }
+    });
     
     const newZIndex = maxZ + 1;
     
     // Update local z-index immediately for instant feedback
-    if (nodeRef.current) {
-      nodeRef.current.style.zIndex = newZIndex.toString();
-    }
+    setLocalZIndex(newZIndex);
     
     // Call async operation without making this function async
     roomAPI.updatePhotoLayer(wallId, photo.id, newZIndex).then(() => {
@@ -238,9 +261,7 @@ export function DraggablePhoto({
       console.error('Error updating photo layer:', error);
       toast.error('Failed to update photo layer');
       // Revert on error
-      if (nodeRef.current) {
-        nodeRef.current.style.zIndex = (photo.z_index || 0).toString();
-      }
+      setLocalZIndex(photo.z_index || 0);
     });
   };
 
@@ -259,7 +280,7 @@ export function DraggablePhoto({
         className={`photo-container photo-container-${photo.id} draggable-photo ${isWallOwner ? 'cursor-move' : 'cursor-default'}`}
         style={{
           transform: `rotate(${rotation}deg) scale(${scale})`,
-          zIndex: photo.z_index || 0,
+          zIndex: localZIndex,
           width: `${size.width}px`,
           height: 'auto'
         }}
@@ -273,7 +294,9 @@ export function DraggablePhoto({
               <button
                 type="button"
                 onClick={handleBringToFront}
+                onTouchStart={handleBringToFront}
                 onMouseDown={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
                 className="p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                 title="Bring to front"
               >
@@ -302,8 +325,14 @@ export function DraggablePhoto({
                     e.preventDefault();
                     onDelete(photo.id);
                   }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onDelete(photo.id);
+                  }}
                   onMouseDown={(e) => e.stopPropagation()}
-                  className="p-1 bg-white rounded-full shadow-lg hover:bg-red-100 transition-colors"
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  className="p-1 bg-white rounded-full shadow-lg hover:bg-red-100 transition-colors touch-none"
                   title="Delete"
                 >
                   <X className="w-3 h-3 text-red-600" />
@@ -317,7 +346,8 @@ export function DraggablePhoto({
             <button
               type="button"
               onMouseDown={handleRotateStart}
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-grab active:cursor-grabbing"
+              onTouchStart={handleRotateStart}
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-grab active:cursor-grabbing touch-none"
               title="Rotate"
             >
               <RotateCw className="w-3 h-3 text-gray-700" />
@@ -329,7 +359,8 @@ export function DraggablePhoto({
             <button
               type="button"
               onMouseDown={handleResizeStart}
-              className="absolute -bottom-2 -right-2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-nwse-resize"
+              onTouchStart={handleResizeStart}
+              className="absolute -bottom-2 -right-2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-nwse-resize touch-none"
               title="Resize"
             >
               <Maximize2 className="w-3 h-3 text-gray-700" />
