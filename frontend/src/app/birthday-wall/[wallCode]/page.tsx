@@ -741,7 +741,7 @@ export default function BirthdayWallPage() {
                     wallId={wall.wall_id}
                     isWallOwner={isWallOwner || false}
                     isMobile={isMobile}
-                    onUpdate={fetchWall}
+                    onUpdate={refreshWallData}
                     onEdit={handleStartEdit}
                     onDelete={handleDeletePhoto}
                     onReact={handleReaction}

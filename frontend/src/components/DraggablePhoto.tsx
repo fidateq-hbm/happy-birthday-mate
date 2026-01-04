@@ -67,13 +67,16 @@ export function DraggablePhoto({
   const rotationStartRef = useRef(0);
   const resizeStartRef = useRef({ width: 0, height: 0, x: 0, y: 0 });
 
-  // Update local state when photo prop changes
+  // Update local state when photo prop changes (but not during active drag/rotate/resize)
   useEffect(() => {
+    // Don't update if user is actively dragging, rotating, or resizing
+    if (isDragging || isRotating || isResizing) return;
+    
     setPosition({ x: photo.position_x || 0, y: photo.position_y || 0 });
     setRotation(photo.rotation || 0);
     setScale(photo.scale || 1.0);
     setSize({ width: photo.width || 200, height: photo.height || 200 });
-  }, [photo.position_x, photo.position_y, photo.rotation, photo.scale, photo.width, photo.height]);
+  }, [photo.position_x, photo.position_y, photo.rotation, photo.scale, photo.width, photo.height, isDragging, isRotating, isResizing]);
 
   const handleDragStart = () => {
     if (!isWallOwner) return false;
