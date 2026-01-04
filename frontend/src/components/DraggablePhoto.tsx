@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
-import { RotateCw, Maximize2, X, Edit2, Trash2, Heart, Smile, ThumbsUp } from 'lucide-react';
+import { RotateCw, Maximize2, X, Edit2, Trash2, Heart, Smile, ThumbsUp, Check } from 'lucide-react';
 import { normalizeImageUrl } from '@/utils/images';
 import { roomAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -40,6 +40,12 @@ interface DraggablePhotoProps {
   getFrameClass: (frame: string) => string;
   getFrameWrapperClass: (frame: string) => string;
   getFrameImageClass: (frame: string) => string;
+  // Editing props
+  editingPhotoId?: number | null;
+  editingCaption?: string;
+  onSetEditingCaption?: (caption: string) => void;
+  onSaveEdit?: (photoId: number) => void;
+  onCancelEdit?: () => void;
 }
 
 export function DraggablePhoto({
@@ -53,7 +59,12 @@ export function DraggablePhoto({
   onReact,
   getFrameClass,
   getFrameWrapperClass,
-  getFrameImageClass
+  getFrameImageClass,
+  editingPhotoId,
+  editingCaption,
+  onSetEditingCaption,
+  onSaveEdit,
+  onCancelEdit
 }: DraggablePhotoProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -203,19 +214,33 @@ export function DraggablePhoto({
     }
   }, [isResizing, size]);
 
-  const handleBringToFront = () => {
+  const handleBringToFront = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     if (!isWallOwner) return;
+    
     // Get max z_index and add 1
     const maxZ = Math.max(...(document.querySelectorAll('.draggable-photo') as any).map((el: HTMLElement) => 
       parseInt(el.style.zIndex) || 0
     ), photo.z_index || 0);
     
+    const newZIndex = maxZ + 1;
+    
+    // Update local z-index immediately for instant feedback
+    if (nodeRef.current) {
+      nodeRef.current.style.zIndex = newZIndex.toString();
+    }
+    
     // Call async operation without making this function async
-    roomAPI.updatePhotoLayer(wallId, photo.id, maxZ + 1).then(() => {
+    roomAPI.updatePhotoLayer(wallId, photo.id, newZIndex).then(() => {
       onUpdate();
     }).catch((error: any) => {
       console.error('Error updating photo layer:', error);
       toast.error('Failed to update photo layer');
+      // Revert on error
+      if (nodeRef.current) {
+        nodeRef.current.style.zIndex = (photo.z_index || 0).toString();
+      }
     });
   };
 
@@ -248,6 +273,7 @@ export function DraggablePhoto({
               <button
                 type="button"
                 onClick={handleBringToFront}
+                onMouseDown={(e) => e.stopPropagation()}
                 className="p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                 title="Bring to front"
               >
@@ -256,7 +282,12 @@ export function DraggablePhoto({
               {onEdit && (
                 <button
                   type="button"
-                  onClick={() => onEdit(photo.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onEdit(photo.id);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
                   title="Edit"
                 >
@@ -266,7 +297,12 @@ export function DraggablePhoto({
               {onDelete && (
                 <button
                   type="button"
-                  onClick={() => onDelete(photo.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onDelete(photo.id);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="p-1 bg-white rounded-full shadow-lg hover:bg-red-100 transition-colors"
                   title="Delete"
                 >
@@ -317,11 +353,53 @@ export function DraggablePhoto({
             />
           </div>
 
-          {/* Caption */}
-          {photo.caption && (
-            <p className={`mt-2 text-gray-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-              {photo.caption}
-            </p>
+          {/* Caption or Edit UI */}
+          {editingPhotoId === photo.id ? (
+            <div className={`mt-2 ${isMobile ? 'p-2' : 'p-3'}`}>
+              <textarea
+                value={editingCaption || ''}
+                onChange={(e) => onSetEditingCaption?.(e.target.value)}
+                placeholder="Add a caption..."
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none ${isMobile ? 'text-xs' : 'text-sm'}`}
+                rows={2}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onSaveEdit?.(photo.id);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1 px-3 py-1 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-xs"
+                >
+                  <Check className="w-3 h-3" />
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onCancelEdit?.();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1 px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-xs"
+                >
+                  <X className="w-3 h-3" />
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            photo.caption && (
+              <p className={`mt-2 text-gray-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                {photo.caption}
+              </p>
+            )
           )}
 
           {/* Reactions */}

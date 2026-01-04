@@ -395,7 +395,7 @@ export default function BirthdayWallPage() {
       toast.success('Photo updated successfully');
       setEditingPhotoId(null);
       setEditingCaption('');
-      await fetchWall(); // Refresh wall
+      await refreshWallData(); // Use silent refresh instead of fetchWall
     } catch (error: any) {
       console.error('Error updating photo:', error);
       let errorMessage = 'Failed to update photo';
@@ -748,6 +748,11 @@ export default function BirthdayWallPage() {
                     getFrameClass={getFrameClass}
                     getFrameWrapperClass={getFrameWrapperClass}
                     getFrameImageClass={getFrameImageClass}
+                    editingPhotoId={editingPhotoId}
+                    editingCaption={editingCaption}
+                    onSetEditingCaption={setEditingCaption}
+                    onSaveEdit={handleSaveEdit}
+                    onCancelEdit={handleCancelEdit}
                   />
                 );
               })}
