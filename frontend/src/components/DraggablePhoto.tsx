@@ -280,7 +280,7 @@ export function DraggablePhoto({
       onDrag={handleDrag}
       onStop={handleDragStop}
       disabled={!isWallOwner}
-      bounds={{ left: 0, top: 0, right: '100%', bottom: '100%' }}
+      bounds="parent"
       cancel="button, .no-drag"
     >
       <div
