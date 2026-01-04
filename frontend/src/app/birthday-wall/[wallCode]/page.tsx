@@ -732,9 +732,10 @@ export default function BirthdayWallPage() {
               className={`relative z-20 ${isMobile ? 'min-h-[400px]' : 'min-h-[600px]'} w-full`}
               style={{ 
                 position: 'relative',
-                overflow: 'auto',
+                overflow: 'visible',
                 width: '100%',
-                maxWidth: '100%'
+                minWidth: '100%',
+                maxWidth: '100vw'
               }}
             >
               {wall.photos.map((photo, index) => {
