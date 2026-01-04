@@ -729,8 +729,13 @@ export default function BirthdayWallPage() {
             </div>
           ) : (
             <div 
-              className={`relative z-20 ${isMobile ? 'min-h-[400px]' : 'min-h-[600px]'} w-full overflow-hidden`}
-              style={{ position: 'relative' }}
+              className={`relative z-20 ${isMobile ? 'min-h-[400px]' : 'min-h-[600px]'} w-full`}
+              style={{ 
+                position: 'relative',
+                overflow: 'auto',
+                width: '100%',
+                maxWidth: '100%'
+              }}
             >
               {wall.photos.map((photo, index) => {
                 const isWallOwner = user && wall.owner_name === user.first_name;

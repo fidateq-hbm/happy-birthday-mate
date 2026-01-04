@@ -78,6 +78,7 @@ export function DraggablePhoto({
   const nodeRef = useRef<HTMLDivElement>(null);
   const rotationStartRef = useRef(0);
   const resizeStartRef = useRef({ width: 0, height: 0, x: 0, y: 0 });
+  const rotationRef = useRef(rotation); // Use ref to track current rotation
 
   // Update local state when photo prop changes (but not during active drag/rotate/resize)
   useEffect(() => {
@@ -85,7 +86,9 @@ export function DraggablePhoto({
     if (isDragging || isRotating || isResizing) return;
     
     setPosition({ x: photo.position_x || 0, y: photo.position_y || 0 });
-    setRotation(photo.rotation || 0);
+    const newRotation = photo.rotation || 0;
+    setRotation(newRotation);
+    rotationRef.current = newRotation; // Update ref
     setScale(photo.scale || 1.0);
     setSize({ width: photo.width || 200, height: photo.height || 200 });
     setLocalZIndex(photo.z_index || 0);
@@ -137,6 +140,8 @@ export function DraggablePhoto({
 
   const handleRotate = (e: MouseEvent | TouchEvent) => {
     if (!isRotating || !isWallOwner) return;
+    e.preventDefault();
+    e.stopPropagation();
     const container = nodeRef.current;
     if (container) {
       const rect = container.getBoundingClientRect();
@@ -147,16 +152,18 @@ export function DraggablePhoto({
       const angle = Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
       const newRotation = (rotationStartRef.current + angle + 360) % 360;
       setRotation(newRotation);
+      rotationRef.current = newRotation; // Update ref immediately
     }
   };
 
   const handleRotateStop = () => {
     if (!isRotating || !isWallOwner) return;
+    const finalRotation = rotationRef.current; // Use ref value
     setIsRotating(false);
     
     // Call async operation without making this function async
     roomAPI.updatePhotoPosition(wallId, photo.id, {
-      rotation: rotation
+      rotation: finalRotation
     }).then(() => {
       onUpdate();
     }).catch((error: any) => {
@@ -273,7 +280,8 @@ export function DraggablePhoto({
       onDrag={handleDrag}
       onStop={handleDragStop}
       disabled={!isWallOwner}
-      bounds="parent"
+      bounds={{ left: 0, top: 0, right: '100%', bottom: '100%' }}
+      cancel="button, .no-drag"
     >
       <div
         ref={nodeRef}
@@ -293,11 +301,23 @@ export function DraggablePhoto({
             <div className="absolute -top-2 -right-2 flex gap-1 z-50">
               <button
                 type="button"
-                onClick={handleBringToFront}
-                onTouchStart={handleBringToFront}
-                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleBringToFront(e);
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleBringToFront(e);
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
                 onTouchEnd={(e) => e.stopPropagation()}
-                className="p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                className="p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors no-drag pointer-events-auto"
+                style={{ pointerEvents: 'auto' }}
                 title="Bring to front"
               >
                 <Maximize2 className="w-3 h-3 text-gray-700" />
@@ -345,9 +365,18 @@ export function DraggablePhoto({
           {isWallOwner && showControls && (
             <button
               type="button"
-              onMouseDown={handleRotateStart}
-              onTouchStart={handleRotateStart}
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-grab active:cursor-grabbing touch-none"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleRotateStart(e);
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleRotateStart(e);
+              }}
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 p-1 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors z-50 cursor-grab active:cursor-grabbing touch-none no-drag pointer-events-auto"
+              style={{ pointerEvents: 'auto' }}
               title="Rotate"
             >
               <RotateCw className="w-3 h-3 text-gray-700" />
